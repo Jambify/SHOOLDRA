@@ -115,7 +115,7 @@ const Welcome: React.FC = () => {
         <img
           src={schooldraLogo}
           alt="Schooldra"
-          className="flex h-15 w-15 items-center justify-center"
+          className="flex h-8 w-8 items-center justify-center lg:h-10 lg:w-10"
         />
         <span className="font-display item-center text-3xl font-bold tracking-tight">
           Schooldra

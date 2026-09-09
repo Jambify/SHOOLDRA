@@ -91,7 +91,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
               <img
                 src={schooldraLogo}
                 alt="Schooldra"
-                className="flex h-25 w-25 items-center justify-center"
+                className="flex h-10 w-10 items-center justify-center"
               />
             </motion.div>
             <span className="text-brand-light text-2xl font-black tracking-wider">
@@ -187,7 +187,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
               <img
                 src={schooldraLogo}
                 alt="Schooldra Logo"
-                className="h-50 w-50"
+                className="h-8 w-8"
               />
             </div>
 

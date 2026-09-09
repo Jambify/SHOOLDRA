@@ -92,8 +92,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
             <img
               src={schooldraLogo}
               alt="Schooldra"
-              className="flex h-20 w-20 items-center justify-center"
-              width={80}
+              className="flex h-12 w-12 items-center justify-center lg:h-16 lg:w-16"
+              width={64}
               height={80}
               loading="eager"
             />

@@ -10,21 +10,21 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/SCHOOLDRA.LOGO.webp",
+      "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/SCHOOLDRA.LOGO.webp",
+      "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/SCHOOLDRA.LOGO.webp",
+      "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -49,14 +49,14 @@
       "short_name": "Quiz",
       "description": "Start a quick practice quiz",
       "url": "/quiz?utm_source=homescreen",
-      "icons": [{ "src": "/SCHOOLDRA.LOGO.webp", "sizes": "96x96", "type": "image/webp" }]
+      "icons": [{ "src": "/favicon-48x48.png", "sizes": "48x48", "type": "image/png" }]
     },
     {
       "name": "Mock Exam",
       "short_name": "Exam",
       "description": "Take a full mock exam",
       "url": "/mock-exams?utm_source=homescreen",
-      "icons": [{ "src": "/SCHOOLDRA.LOGO.webp", "sizes": "96x96", "type": "image/webp" }]
+      "icons": [{ "src": "/favicon-48x48.png", "sizes": "48x48", "type": "image/png" }]
     }
   ]
 }
