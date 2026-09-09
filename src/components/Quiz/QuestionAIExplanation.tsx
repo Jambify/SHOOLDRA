@@ -97,9 +97,8 @@ Keep the entire response under 220 words total. Use plain language suitable for 
         ]);
         setAiExplanation(result);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to get AI explanation",
-        );
+        console.error("Failed to get AI explanation:", err);
+        setError("Failed to generate explanation. Please try again.");
       } finally {
         setIsLoading(false);
       }

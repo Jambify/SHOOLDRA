@@ -338,7 +338,7 @@ export const useUserStore = create<UserState>()(
           }
           return { error: null };
         } catch (err) {
-          set({ authError: (err as Error).message });
+          set({ authError: "Something went wrong creating your account. Please try again." });
           // FIX: preserve the name the user typed even on failure
           // so Onboarding.tsx can display it correctly
           set((s) => ({ name: s.name || "" }));
@@ -363,7 +363,36 @@ export const useUserStore = create<UserState>()(
           }
           return { error: null };
         } catch (err) {
-          set({ authError: (err as Error).message });
+          console.error("[signIn]", err);
+          const rawMsg = (err as Error)?.message ?? "";
+          const status = (err as any)?.status;
+
+          let message = "Something went wrong signing you in. Please try again.";
+          if (
+            rawMsg.includes("Invalid login credentials") ||
+            status === 400
+          ) {
+            message = "Incorrect email or password. Please try again.";
+          } else if (
+            (err as Error)?.name === "AbortError" ||
+            rawMsg.toLowerCase().includes("network") ||
+            rawMsg.toLowerCase().includes("timeout") ||
+            rawMsg.toLowerCase().includes("fetch failed") ||
+            rawMsg.toLowerCase().includes("failed to fetch")
+          ) {
+            message =
+              "Network error. Please check your connection and try again.";
+          } else if (
+            rawMsg.toLowerCase().includes("rate") ||
+            rawMsg.toLowerCase().includes("limit") ||
+            rawMsg.toLowerCase().includes("too many") ||
+            status === 429
+          ) {
+            message =
+              "Too many attempts. Please wait a moment and try again.";
+          }
+
+          set({ authError: message });
           return { error: err as Error };
         } finally {
           set({ isLoading: false });

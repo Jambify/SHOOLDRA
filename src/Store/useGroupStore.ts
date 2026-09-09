@@ -165,7 +165,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       set({ groups: mapped as StudyGroup[], loading: false });
     } catch (err: any) {
       console.error("loadGroups error:", err);
-      set({ error: err.message, loading: false });
+      set({ error: "We couldn't load study groups right now. Please try again.", loading: false });
     }
   },
 
@@ -210,7 +210,8 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       if (error) throw error;
       await Promise.all([get().loadGroups(), get().loadMyGroups()]);
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err) });
+      console.error("createGroup error:", err);
+      set({ error: "We couldn't create the group right now. Please try again." });
     } finally {
       set({ loading: false });
     }

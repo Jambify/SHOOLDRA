@@ -189,8 +189,8 @@ const AdminReports: React.FC = () => {
 
       setReports(merged);
     } catch (err: unknown) {
-      const error = err as PostgrestError;
-      toast("error", error.message ?? "Failed to load question reports");
+      console.error("Failed to load question reports:", err);
+      toast("error", "Failed to load question reports");
     } finally {
       setLoading(false);
     }
@@ -220,8 +220,8 @@ const AdminReports: React.FC = () => {
         toast("success", `Report marked as ${STATUS_LABELS[newStatus]}`);
       }
     } catch (err: unknown) {
-      const error = err as PostgrestError;
-      toast("error", error.message ?? "Failed to update report status");
+      console.error("Failed to update report status:", err);
+      toast("error", "Failed to update report status");
     } finally {
       setUpdatingId(null);
     }

@@ -171,9 +171,10 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         },
         // onError
         (err) => {
+          console.error("AI chat send error:", err);
           streamingIdRef.current = null;
           setIsLoading(false);
-          setError(err.message);
+          setError("Something went wrong with the AI response. Please try again.");
           setLastFailedMessage(text.trim());
           // Remove the failed AI placeholder message
           setMessages((prev) => prev.filter((m) => m.id !== aiId));

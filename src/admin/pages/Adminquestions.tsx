@@ -210,7 +210,8 @@ const QuestionModal: React.FC<{
       onSaved();
       onClose();
     } catch (err: any) {
-      toast("error", err.message ?? "Failed to save question");
+      console.error("Failed to save question:", err);
+      toast("error", "Failed to save question");
     } finally {
       setSaving(false);
     }
@@ -526,7 +527,8 @@ const AdminQuestions: React.FC = () => {
       setQuestions(allRows);
       setTotalCount(grandTotal);
     } catch (err: any) {
-      toast("error", err.message ?? "Failed to load questions");
+      console.error("Failed to load questions:", err);
+      toast("error", "Failed to load questions");
     } finally {
       setLoading(false);
     }
@@ -607,7 +609,8 @@ const AdminQuestions: React.FC = () => {
       toast("success", "Question deleted");
       setDeleteTarget(null);
     } catch (err: any) {
-      toast("error", err.message ?? "Delete failed");
+      console.error("Delete failed:", err);
+      toast("error", "Delete failed");
     } finally {
       setDeleting(false);
     }

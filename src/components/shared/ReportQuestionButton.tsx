@@ -86,7 +86,8 @@ const ReportQuestionButton: React.FC<ReportQuestionButtonProps> = ({
         setReason(REASONS[0].value);
       }, 1500);
     } catch (err: any) {
-      setError(err.message ?? "Failed to submit report. Please try again.");
+      console.error("Failed to submit report:", err);
+      setError("Failed to submit report. Please try again.");
     } finally {
       setSubmitting(false);
     }

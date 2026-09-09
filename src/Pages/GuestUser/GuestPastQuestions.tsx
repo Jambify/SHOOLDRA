@@ -126,10 +126,7 @@ const GuestPastQuestions = () => {
       } catch (e) {
         console.error("Error loading guest past questions:", e);
         if (isMounted)
-          setLoadingError(
-            (e as Error)?.message ||
-              "Failed to load questions. Please try again.",
-          );
+          setLoadingError("Failed to load questions. Please try again.");
       } finally {
         if (isMounted) setIsLoading(false);
       }

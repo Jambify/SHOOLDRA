@@ -159,7 +159,8 @@ const SignUp: React.FC = () => {
         } else if (verifyErr.message.toLowerCase().includes("invalid")) {
           setError("Invalid code. Please check and try again.");
         } else {
-          setError(verifyErr.message);
+          console.error("[SignUp verifyOtp]", verifyErr);
+          setError("Code verification failed. Please try again.");
         }
         return;
       }

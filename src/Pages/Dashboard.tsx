@@ -22,8 +22,10 @@ import {
   CheckCircle2,
   Zap,
   GraduationCap,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "../lib/utils/utils";
+import ErrorBanner from "../components/ui/ErrorBanner";
 
 // ── Countdown display helpers ─────────────────────────────
 function countdownColor(days: number): string {
@@ -186,43 +188,10 @@ const Dashboard: React.FC = () => {
       `}</style>
       {/* Error Alert */}
       {error && (
-        <div className="rounded-brand-xl mb-6 flex items-center gap-3 border border-red-500/30 bg-red-500/10 px-4 py-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20">
-            <svg
-              className="h-5 w-5 text-red-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-red-300">{error}</p>
-          </div>
-          <button
-            onClick={() => loadPerformanceData(true)}
-            className="flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-200 transition-all hover:bg-red-500/30"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            Retry
-          </button>
-        </div>
+        <ErrorBanner
+          message={error}
+          onRetry={() => loadPerformanceData(true)}
+        />
       )}
 
       {/* ══════════════════════════════════════════════════
@@ -247,10 +216,10 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Greeting */}
-            <h2 className="font-display mb-1 text-2xl leading-snug font-bold tracking-tight md:text-3xl whitespace-normal break-words">
+            <h2 className="font-display mb-1 text-2xl leading-snug font-bold tracking-tight break-words whitespace-normal md:text-3xl">
               Ready to ace it,
             </h2>
-            <h2 className="font-display mb-4 text-2xl leading-snug font-bold tracking-tight md:text-3xl whitespace-normal break-words">
+            <h2 className="font-display mb-4 text-2xl leading-snug font-bold tracking-tight break-words whitespace-normal md:text-3xl">
               <span className="text-brand-light">{name || "Champion"}</span>?
             </h2>
 

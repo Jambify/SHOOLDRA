@@ -22,6 +22,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import ValidatedInput from "../components/ui/ValidatedInput";
 import { truncateInput } from "../lib/validation";
+import SectionError from "../components/ui/SectionError";
+import ErrorBanner from "../components/ui/ErrorBanner";
 
 const CATEGORIES = [
   { id: "all", name: "All", icon: Filter },
@@ -61,12 +63,24 @@ const StudyGroups: React.FC = () => {
     groups,
     myGroupIds,
     loading,
+    error,
     loadGroups,
     loadMyGroups,
     joinGroup,
     leaveGroup,
     joinByCode,
   } = useGroupStore();
+
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+
+  const handleManualRefresh = async () => {
+    setIsManualRefreshing(true);
+    try {
+      await Promise.all([loadGroups(), loadMyGroups()]);
+    } finally {
+      setTimeout(() => setIsManualRefreshing(false), 600);
+    }
+  };
 
   useEffect(() => {
     loadGroups();
@@ -148,6 +162,10 @@ const StudyGroups: React.FC = () => {
   const displayedDiscover = filterAndSortGroups(discoverGroups, true);
   const displayedMyGroups = filterAndSortGroups(myGroups, false);
 
+  const hasData = groups.length > 0;
+  const showFullError = !!error && !loading && !hasData;
+  const showRefreshBanner = !!error && hasData;
+
   return (
     <AppLayout
       currentPage="groups"
@@ -159,6 +177,15 @@ const StudyGroups: React.FC = () => {
         description="Join or create study groups to collaborate with peers, share resources, and improve together for JAMB UTME."
         canonical="https://www.schooldra.com/study-groups"
       />
+
+      {showRefreshBanner && (
+        <ErrorBanner
+          message={error || ""}
+          onRetry={handleManualRefresh}
+          isRetrying={isManualRefreshing}
+        />
+      )}
+
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h2 className="font-display text-2xl font-bold tracking-tight">
@@ -289,8 +316,8 @@ const StudyGroups: React.FC = () => {
         </p>
       )}
 
-      {/* Loading - scoped skeleton cards in grid */}
-      {loading && (
+      {/* Loading - scoped skeleton cards in grid, or SectionError on failure */}
+      {loading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((g) => (
             <div
@@ -321,10 +348,13 @@ const StudyGroups: React.FC = () => {
             </div>
           ))}
         </div>
-      )}
-
-      {/* Groups grid */}
-      {!loading &&
+      ) : showFullError ? (
+        <SectionError
+          message={error || ""}
+          onRetry={handleManualRefresh}
+          isRetrying={isManualRefreshing}
+        />
+      ) : (
         (tab === "discover" ? (
           displayedDiscover.length === 0 ? (
             <div className="text-textDim py-12 text-center text-sm">
@@ -384,7 +414,7 @@ const StudyGroups: React.FC = () => {
               </motion.div>
             ))}
           </div>
-        ))}
+        )))}
 
       {showCreate && <CreateGroupModal onClose={() => setShowCreate(false)} />}
 

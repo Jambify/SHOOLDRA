@@ -210,7 +210,9 @@ const fmtDuration = (secs: number | null | undefined) => {
 // Formats a subject_scores entry, which is always { correct, total, score }
 // per MockHistoryService.ts. Defensive fallback kept only in case a
 // legacy/malformed row (pre-dating this shape) ever slips through.
-const formatSubjectScore = (val: SubjectScoreDetail | number | null | undefined): string => {
+const formatSubjectScore = (
+  val: SubjectScoreDetail | number | null | undefined,
+): string => {
   if (val == null) return "—";
   if (typeof val === "number") return String(val);
   const { correct, total, score } = val;
@@ -395,21 +397,32 @@ const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
                   </button>
                   {expandedId === m.id && (
                     <div className="border-borderMuted space-y-1.5 border-t px-3 py-2.5">
-                      <Row label="Correct" value={`${m.total_correct} / ${m.total_questions}`} />
-                      <Row label="Time taken" value={fmtDuration(m.time_taken_secs)} />
-                      <Row label="Subjects" value={m.subjects?.join(", ") || "—"} />
+                      <Row
+                        label="Correct"
+                        value={`${m.total_correct} / ${m.total_questions}`}
+                      />
+                      <Row
+                        label="Time taken"
+                        value={fmtDuration(m.time_taken_secs)}
+                      />
+                      <Row
+                        label="Subjects"
+                        value={m.subjects?.join(", ") || "—"}
+                      />
                       {m.subject_scores && (
                         <div className="pt-1">
                           <p className="text-textDim mb-1 text-[10px] font-bold tracking-widest uppercase">
                             Per-subject scores
                           </p>
-                          {Object.entries(m.subject_scores).map(([subj, val]) => (
-                            <Row
-                              key={subj}
-                              label={subj}
-                              value={formatSubjectScore(val)}
-                            />
-                          ))}
+                          {Object.entries(m.subject_scores).map(
+                            ([subj, val]) => (
+                              <Row
+                                key={subj}
+                                label={subj}
+                                value={formatSubjectScore(val)}
+                              />
+                            ),
+                          )}
                         </div>
                       )}
                     </div>
@@ -442,7 +455,8 @@ const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
                         </span>
                       </p>
                       <p className="text-textDim truncate text-[11px]">
-                        {fmtDate(q.completed_at)} · {q.correct}/{q.total_questions} correct
+                        {fmtDate(q.completed_at)} · {q.correct}/
+                        {q.total_questions} correct
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -460,7 +474,10 @@ const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
                   {expandedId === q.id && (
                     <div className="border-borderMuted space-y-1.5 border-t px-3 py-2.5">
                       <Row label="Mode" value={q.mode} />
-                      <Row label="Time taken" value={fmtDuration(q.time_taken_secs)} />
+                      <Row
+                        label="Time taken"
+                        value={fmtDuration(q.time_taken_secs)}
+                      />
                       {q.topic_performance && (
                         <div className="pt-1">
                           <p className="text-textDim mb-1 text-[10px] font-bold tracking-widest uppercase">
@@ -570,7 +587,7 @@ const UserDrawer: React.FC<{
               <p className="text-textDim truncate text-xs">{user.email}</p>
               <div className="mt-1 flex items-center gap-1.5">
                 {user.is_owner && (
-                  <span className="bg-warn/10 text-warn flex items-center gap-1 rounded-full border border-warn/20 px-2 py-0.5 text-[10px] font-bold uppercase">
+                  <span className="bg-warn/10 text-warn border-warn/20 flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase">
                     <Crown className="h-2.5 w-2.5" />
                     Owner
                   </span>
@@ -874,8 +891,8 @@ const AdminUsers: React.FC = () => {
 
       setUsers(merged);
     } catch (err: unknown) {
-      const error = err as PostgrestError;
-      toast("error", error.message ?? "Failed to load users");
+      console.error("Failed to load users:", err);
+      toast("error", "Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -1048,8 +1065,8 @@ const AdminUsers: React.FC = () => {
         );
       }
     } catch (err: unknown) {
-      const error = err as PostgrestError;
-      toast("error", error.message ?? "Action failed");
+      console.error("Action failed:", err);
+      toast("error", "Action failed");
     } finally {
       setActionLoading(null);
     }
@@ -1088,8 +1105,8 @@ const AdminUsers: React.FC = () => {
       toast("success", `Deleted: ${deleteTarget.name}`);
       setDeleteTarget(null);
     } catch (err: unknown) {
-      const error = err as PostgrestError;
-      toast("error", error.message ?? "Delete failed");
+      console.error("Delete failed:", err);
+      toast("error", "Delete failed");
     } finally {
       setActionLoading(null);
     }
@@ -1280,7 +1297,7 @@ const AdminUsers: React.FC = () => {
                                   ? "Revoke Pro"
                                   : "Grant Pro"
                             }
-                            className="rounded-brand hover:bg-warn/10 text-textDim hover:text-warn p-1.5 transition-all disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-textDim"
+                            className="rounded-brand hover:bg-warn/10 text-textDim hover:text-warn disabled:hover:text-textDim p-1.5 transition-all disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
                           >
                             <Crown className="h-3.5 w-3.5" />
                           </button>
@@ -1294,7 +1311,7 @@ const AdminUsers: React.FC = () => {
                                   ? "Unfreeze"
                                   : "Freeze"
                             }
-                            className="rounded-brand text-textDim p-1.5 transition-all hover:bg-blue-500/10 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-textDim"
+                            className="rounded-brand text-textDim disabled:hover:text-textDim p-1.5 transition-all hover:bg-blue-500/10 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
                           >
                             {u.is_frozen ? (
                               <ShieldCheck className="h-3.5 w-3.5" />
@@ -1310,7 +1327,7 @@ const AdminUsers: React.FC = () => {
                                 ? "Owner account is protected"
                                 : "Delete"
                             }
-                            className="rounded-brand hover:bg-danger/10 text-textDim hover:text-danger p-1.5 transition-all disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-textDim"
+                            className="rounded-brand hover:bg-danger/10 text-textDim hover:text-danger disabled:hover:text-textDim p-1.5 transition-all disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>

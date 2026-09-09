@@ -6,19 +6,27 @@ import {
 } from "../../Services/MockHistoryService";
 import MockHistoryCard from "./MockHistoryCard";
 import { useUserStore } from "../../Store/useUserStore";
+import SectionError from "../ui/SectionError";
 
 const MockHistory: React.FC = () => {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated);
   const [history, setHistory] = useState<MockHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
     if (!isAuthenticated) return;
     setIsLoading(true);
+    setError(null);
     try {
       const data = await getMockExamHistory();
       setHistory(data);
+    } catch (err) {
+      console.error("Failed to load mock history:", err);
+      setError(
+        "We couldn't load your mock exam history right now. Please try again.",
+      );
     } finally {
       setIsLoading(false);
       setHasFetched(true);
@@ -56,32 +64,31 @@ const MockHistory: React.FC = () => {
       </div>
 
       {/* Loading — scoped skeleton only for list area, header stays always visible */}
-      {isLoading && !hasFetched && (
+      {isLoading && !hasFetched ? (
         <div className="space-y-4 py-2">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
               className="bg-bgSurface/50 border-borderMuted flex items-center gap-4 rounded-2xl border p-4"
             >
-              <div className="bg-bgCard flex h-11 w-11 shrink-0 items-center justify-center skeleton-shimmer rounded-xl" />
+              <div className="bg-bgCard skeleton-shimmer flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" />
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="bg-bgCard h-4 w-28 skeleton-shimmer rounded" />
-                  <div className="bg-bgCard h-5 w-12 skeleton-shimmer rounded-full" />
+                  <div className="bg-bgCard skeleton-shimmer h-4 w-28 rounded" />
+                  <div className="bg-bgCard skeleton-shimmer h-5 w-12 rounded-full" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="bg-bgCard h-3 w-24 skeleton-shimmer rounded" />
-                  <div className="bg-bgCard h-3 w-16 skeleton-shimmer rounded" />
+                  <div className="bg-bgCard skeleton-shimmer h-3 w-24 rounded" />
+                  <div className="bg-bgCard skeleton-shimmer h-3 w-16 rounded" />
                 </div>
-                <div className="bg-bgCard h-2 w-full skeleton-shimmer rounded-full" />
+                <div className="bg-bgCard skeleton-shimmer h-2 w-full rounded-full" />
               </div>
             </div>
           ))}
         </div>
-      )}
-
-      {/* Empty */}
-      {hasFetched && !isLoading && history.length === 0 && (
+      ) : error && history.length === 0 ? (
+        <SectionError message={error} onRetry={load} isRetrying={isLoading} />
+      ) : hasFetched && !isLoading && history.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="bg-brand/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
             <BookOpen className="text-brand h-6 w-6" />
@@ -93,7 +100,7 @@ const MockHistory: React.FC = () => {
             Complete your first mock exam to see your history here.
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* History list */}
       {hasFetched && history.length > 0 && (

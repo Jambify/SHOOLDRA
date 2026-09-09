@@ -7,7 +7,9 @@ import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/useUserStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 import { computeBestWorstSubjects } from "../lib/subjectInsights";
-import { RefreshCw, AlertCircle } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+import SectionError from "../components/ui/SectionError";
+import ErrorBanner from "../components/ui/ErrorBanner";
 
 type SortKey = "name" | "accuracy" | "progress";
 
@@ -86,40 +88,10 @@ const Subjects: React.FC = () => {
         )
       : 0;
 
-  // Show full-page error only if error AND no data
-  if (error && !hasData) {
-    return (
-      <AppLayout
-        currentPage="subjects"
-        isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
-      >
-        <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
-          <div className="bg-danger/10 flex h-20 w-20 items-center justify-center rounded-3xl">
-            <AlertCircle className="text-danger h-10 w-10" />
-          </div>
-          <div className="space-y-2 text-center">
-            <h2 className="font-display text-textMain text-2xl font-bold">
-              We couldn't load your subjects right now
-            </h2>
-            <p className="text-textDim mx-auto max-w-sm text-sm">
-              Please check your internet connection and try again
-            </p>
-          </div>
-          <button
-            onClick={handleManualRefresh}
-            className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-8 py-3 text-sm font-bold text-white transition-all active:scale-95"
-          >
-            <RefreshCw
-              size={16}
-              className={isManualRefreshing ? "animate-spin" : ""}
-            />
-            {isManualRefreshing ? "Loading..." : "Try Again"}
-          </button>
-        </div>
-      </AppLayout>
-    );
-  }
+  // Determine loading/data/error gate variables
+  const showDataSkeleton = isLoading && !hasFetched;
+  const showFullError = !!error && !hasData;
+  const showRefreshBanner = !!error && hasData;
 
   return (
     <AppLayout
@@ -148,30 +120,12 @@ const Subjects: React.FC = () => {
 
       <div className="animate-fadeIn mx-auto max-w-350 space-y-6">
         {/* Warning Banner */}
-        {error && hasData && (
-          <div className="bg-warning/10 border-warning/30 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="text-warning h-5 w-5 shrink-0" />
-              <div>
-                <p className="text-textMain text-sm font-semibold">
-                  Unable to refresh your latest subject data
-                </p>
-                <p className="text-textDim mt-0.5 text-xs">
-                  Showing your most recent saved results
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleManualRefresh}
-              className="bg-warning hover:bg-warning/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 sm:w-auto"
-            >
-              <RefreshCw
-                size={14}
-                className={isManualRefreshing ? "animate-spin" : ""}
-              />
-              {isManualRefreshing ? "Retrying..." : "Retry"}
-            </button>
-          </div>
+        {showRefreshBanner && (
+          <ErrorBanner
+            message={error || ""}
+            onRetry={handleManualRefresh}
+            isRetrying={isManualRefreshing}
+          />
         )}
 
         {/* Header Section — title left, controls stack cleanly on the right on desktop */}
@@ -244,7 +198,7 @@ const Subjects: React.FC = () => {
         </div>
 
         {/* Stats Overview */}
-        {isLoading && !hasFetched ? (
+        {showDataSkeleton ? (
           <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
             <div className="mb-2 flex items-center justify-between">
               <div className="bg-bgSurface skeleton-shimmer h-3 w-56 rounded" />
@@ -262,6 +216,12 @@ const Subjects: React.FC = () => {
               ))}
             </div>
           </div>
+        ) : showFullError ? (
+          <SectionError
+            message={error || ""}
+            onRetry={handleManualRefresh}
+            isRetrying={isManualRefreshing}
+          />
         ) : (
           <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
             <div className="mb-2 flex items-center justify-between">
@@ -296,7 +256,7 @@ const Subjects: React.FC = () => {
 
         {/* Subject Grid — 2 columns */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {isLoading && !hasFetched ? (
+          {showDataSkeleton ? (
             // Scoped skeleton — only the grid, not the entire page
             <>
               {[1, 2, 3, 4].map((i) => (
@@ -320,6 +280,14 @@ const Subjects: React.FC = () => {
                 </div>
               ))}
             </>
+          ) : showFullError ? (
+            <div className="col-span-1 sm:col-span-2">
+              <SectionError
+                message={error || ""}
+                onRetry={handleManualRefresh}
+                isRetrying={isManualRefreshing}
+              />
+            </div>
           ) : (
             sorted.map((subject) => (
               <SubjectCard

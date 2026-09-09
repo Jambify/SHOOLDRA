@@ -125,7 +125,8 @@ const AdminRoles: React.FC = () => {
         rows.map((r) => ({ ...r, profile: profileMap.get(r.user_id) })),
       );
     } catch (err: any) {
-      toast("error", err.message ?? "Failed to load admins");
+      console.error("Failed to load admins:", err);
+      toast("error", "Failed to load admins");
     } finally {
       setLoading(false);
     }
@@ -188,7 +189,8 @@ const AdminRoles: React.FC = () => {
       setNewEmail("");
       fetchAdmins();
     } catch (err: any) {
-      toast("error", err.message ?? "Failed to add admin");
+      console.error("Failed to add admin:", err);
+      toast("error", "Failed to add admin");
     } finally {
       setAdding(false);
     }
@@ -227,7 +229,8 @@ const AdminRoles: React.FC = () => {
       setAdmins((prev) => prev.filter((a) => a.user_id !== admin.user_id));
       toast("success", "Admin access removed");
     } catch (err: any) {
-      toast("error", err.message ?? "Failed to remove admin");
+      console.error("Failed to remove admin:", err);
+      toast("error", "Failed to remove admin");
     } finally {
       setRemovingId(null);
     }

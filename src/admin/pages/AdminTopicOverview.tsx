@@ -17,6 +17,7 @@ import { cn } from "../../lib/utils/utils";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import ValidatedInput from "../../components/ui/ValidatedInput";
 import { truncateInput } from "../../lib/validation";
+import SectionError from "../../components/ui/SectionError";
 import {
   AlertTriangle,
   Loader2,
@@ -63,8 +64,8 @@ const AdminTopicOverview: React.FC = () => {
       if (rpcError) throw rpcError;
       setRows((data ?? []) as TopicRow[]);
     } catch (err: unknown) {
-      const e = err as { message?: string };
-      setError(e.message ?? "Failed to load topic counts");
+      console.error("Failed to load topic counts:", err);
+      setError("Failed to load topic counts");
     } finally {
       setLoading(false);
     }
@@ -129,8 +130,8 @@ const AdminTopicOverview: React.FC = () => {
           </h2>
           <p className="text-textDim text-sm">
             Topic and question counts per subject. Topics below{" "}
-            {THIN_TOPIC_THRESHOLD} questions are flagged — they can't sustain
-            a standalone 20-question quiz.
+            {THIN_TOPIC_THRESHOLD} questions are flagged — they can't sustain a
+            standalone 20-question quiz.
           </p>
         </div>
         <button
@@ -216,10 +217,11 @@ const AdminTopicOverview: React.FC = () => {
             <Loader2 className="text-brand h-6 w-6 animate-spin" />
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <AlertTriangle className="text-danger h-10 w-10" />
-            <p className="text-danger text-sm">{error}</p>
-          </div>
+          <SectionError
+            message={error || ""}
+            onRetry={fetchCounts}
+            isRetrying={loading}
+          />
         ) : grouped.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <AlertTriangle className="text-textDim h-10 w-10" />
@@ -277,7 +279,7 @@ const AdminTopicOverview: React.FC = () => {
                             )}
                           >
                             <span className="truncate pr-2">{t.topic}</span>
-                            <span className="font-mono font-bold shrink-0">
+                            <span className="shrink-0 font-mono font-bold">
                               {t.question_count}
                             </span>
                           </div>
