@@ -381,17 +381,19 @@ const NavSection: React.FC<{
         onClick={onNavigate}
         className={({ isActive }) =>
           cn(
-            "rounded-brand mb-0.5 flex items-center gap-2.5 px-3 py-2 text-sm transition-all",
+            "rounded-brand mb-0.5 flex items-center gap-2.5 px-3 py-2 text-sm transition-all duration-200 ease-out",
             isActive
-              ? "bg-brand/10 text-brand-light font-medium"
+              ? "bg-brand/12 text-brand-light shadow-brand/10 font-medium shadow-md"
               : "text-textMuted hover:bg-bgSurface hover:text-textMain",
           )
         }
       >
-        <span className="shrink-0">{item.icon}</span>
+        <span className="shrink-0 transition-opacity duration-200 ease-out">
+          {item.icon}
+        </span>
         <span className="flex-1">{item.label}</span>
         {item.badge != null && (
-          <span className="bg-brand min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
+          <span className="bg-brand shadow-brand/15 min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow">
             {/* {item.badge} */}
           </span>
         )}

@@ -34,7 +34,7 @@ const SectionError: React.FC<SectionErrorProps> = ({
         </svg>
       </div>
       <div className="flex flex-col items-center gap-1">
-        <h3 className="font-display text-xl font-bold text-textPrimary">
+        <h3 className="font-display text-xl font-bold text-textMain">
           Something went wrong
         </h3>
         <p className="text-textDim max-w-sm text-sm">{message}</p>

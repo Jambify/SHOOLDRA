@@ -12,7 +12,7 @@ import { Menu, X } from "lucide-react";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
 import ThemeToggle from "../ui/ThemeToggle";
 
-const NAV_LINKS = ["Mock Exams", "Past Questions", "Performance", "Pricing", "FAQ"];
+const NAV_LINKS = ["Mock Exams", "Pricing", "FAQ"];
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();

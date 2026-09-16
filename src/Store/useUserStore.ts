@@ -227,6 +227,37 @@ const getSubjectComboId = (str: string): string | string[] => {
 };
 
 // ── Store ─────────────────────────────────────────────────────────────────────
+
+export type PostLoginDestination =
+  | { route: "/onboarding" }
+  | { route: "/welcome" }
+  | { route: "/admin" }
+  | { route: "/dashboard" };
+
+/**
+ * Single source of truth for "where does an authenticated user land?".
+ * All redirect sites (RouteGuard public-route redirect, SignIn session resume,
+ * SignIn OTP verify, AuthCallback) MUST call this so isAdmin + onboarding +
+ * welcome decisions are consistent everywhere. This is what eliminates the
+ * old "flash /dashboard then /admin" race: RouteGuard used to hardcode
+ * /dashboard while SignIn.tsx would correct to /admin on a separate render.
+ *
+ * Always call AFTER syncProfile() has fully resolved so isAdmin,
+ * onboardingComplete, hasSeenWelcome reflect the DB values, not stale
+ * defaults.
+ */
+export function getPostLoginDestination(
+  state: Pick<
+    UserState,
+    "isAdmin" | "isModerator" | "isOwner" | "onboardingComplete" | "hasSeenWelcome"
+  >,
+): PostLoginDestination {
+  if (!state.onboardingComplete) return { route: "/onboarding" };
+  if (!state.hasSeenWelcome) return { route: "/welcome" };
+  if (state.isAdmin || state.isOwner || state.isModerator) return { route: "/admin" };
+  return { route: "/dashboard" };
+}
+
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({

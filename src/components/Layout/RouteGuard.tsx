@@ -1,7 +1,10 @@
 // src/components/Layout/RouteGuard.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router";
-import { useUserStore } from "../../Store/useUserStore";
+import {
+  getPostLoginDestination,
+  useUserStore,
+} from "../../Store/useUserStore";
 import { supabase } from "../../lib/supabase";
 
 // NOTE: "/" is handled separately below with an EXACT match, because
@@ -18,6 +21,9 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated);
   const onboardingComplete = useUserStore((s) => s.onboardingComplete);
   const hasSeenWelcome = useUserStore((s) => s.hasSeenWelcome);
+  const isAdmin = useUserStore((s) => s.isAdmin);
+  const isModerator = useUserStore((s) => s.isModerator);
+  const isOwner = useUserStore((s) => s.isOwner);
   const syncProfile = useUserStore((s) => s.syncProfile);
   const [profileExists, setProfileExists] = useState(true);
   const [isInitialising, setIsInitialising] = useState(!appInitialised);
@@ -90,7 +96,14 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       hasSeenWelcome &&
       (pathname === "/signin" || pathname === "/signup" || pathname === "/")
     ) {
-      return <Navigate to="/dashboard" replace />;
+      const dest = getPostLoginDestination({
+        isAdmin,
+        isModerator,
+        isOwner,
+        onboardingComplete,
+        hasSeenWelcome,
+      }).route;
+      return <Navigate to={dest} replace />;
     }
     return <>{children}</>;
   }
@@ -101,13 +114,31 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // 3. /onboarding — only for users who haven't finished onboarding
   if (pathname.startsWith("/onboarding")) {
-    if (onboardingComplete) return <Navigate to="/dashboard" replace />;
+    if (onboardingComplete) {
+      const dest = getPostLoginDestination({
+        isAdmin,
+        isModerator,
+        isOwner,
+        onboardingComplete,
+        hasSeenWelcome,
+      }).route;
+      return <Navigate to={dest} replace />;
+    }
     return <>{children}</>;
   }
   // 4. /welcome — only for users who finished onboarding but haven't seen welcome
   if (pathname.startsWith("/welcome")) {
     if (!onboardingComplete) return <Navigate to="/onboarding" replace />;
-    if (hasSeenWelcome) return <Navigate to="/dashboard" replace />;
+    if (hasSeenWelcome) {
+      const dest = getPostLoginDestination({
+        isAdmin,
+        isModerator,
+        isOwner,
+        onboardingComplete,
+        hasSeenWelcome,
+      }).route;
+      return <Navigate to={dest} replace />;
+    }
     return <>{children}</>;
   }
 

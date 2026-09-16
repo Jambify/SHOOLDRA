@@ -311,9 +311,9 @@ const AdminOverview: React.FC = () => {
             </div>
           ))}
         </div>
-      ) : error && !hasData ? (
-        <SectionError
-          message={error}
+      ) : !stats ? (
+         <SectionError
+          message={error || "Failed to load admin overview. Please try again."}
           onRetry={handleManualRefresh}
           isRetrying={isManualRefreshing}
         />

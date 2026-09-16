@@ -22,13 +22,13 @@ const ErrorBanner: React.FC<ErrorBannerProps> = ({
       role="alert"
     >
       <AlertTriangle size={18} className="shrink-0" />
-      <p className="text-textSecondary flex-1 text-sm">{message}</p>
+      <p className="text-textMain flex-1 text-sm">{message}</p>
       <div className="flex shrink-0 items-center gap-1">
         {onRetry && (
           <button
             onClick={onRetry}
             disabled={isRetrying}
-            className="text-textSecondary hover:text-textPrimary flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50"
+            className="text-textMuted hover:text-textMain flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50"
           >
             <RefreshCw
               size={14}
@@ -41,7 +41,7 @@ const ErrorBanner: React.FC<ErrorBannerProps> = ({
           <button
             onClick={onDismiss}
             aria-label="Dismiss error"
-            className="text-textDim hover:text-textPrimary rounded-lg p-1.5 transition-colors"
+            className="text-textDim hover:text-textMain rounded-lg p-1.5 transition-colors"
           >
             <X size={16} />
           </button>

@@ -22,7 +22,6 @@ import {
   CheckCircle2,
   Zap,
   GraduationCap,
-  RefreshCw,
 } from "lucide-react";
 import { cn } from "../lib/utils/utils";
 import ErrorBanner from "../components/ui/ErrorBanner";

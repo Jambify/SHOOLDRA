@@ -94,7 +94,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
               alt="Schooldra"
               className="flex h-12 w-12 items-center justify-center lg:h-16 lg:w-16"
               width={64}
-              height={80}
+              height={64}
               loading="eager"
             />
           </motion.div>

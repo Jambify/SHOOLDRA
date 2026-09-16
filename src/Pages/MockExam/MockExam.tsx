@@ -777,7 +777,7 @@ const MockExam: React.FC = () => {
                 <img
                   src={schooldraLogo}
                   alt="Schooldra"
-                  className="flex h-10 w-10 items-center justify-center"
+                  className="flex h-8 w-8 items-center justify-center"
                 />
               </motion.div>
               <span className="font-display text-sm font-bold tracking-tight">

@@ -15,6 +15,8 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import ValidatedInput from "../../components/ui/ValidatedInput";
 import { MAX_EMAIL_LENGTH, truncateInput } from "../../lib/validation";
+import { armAdminWelcomeToast } from "../../admin/adminWelcome";
+import { getPostLoginDestination } from "../../Store/useUserStore";
 
 type Step = "form" | "otp";
 
@@ -25,7 +27,9 @@ type Step = "form" | "otp";
 const isNetworkError = (err: unknown): boolean => {
   if (typeof navigator !== "undefined" && !navigator.onLine) return true;
   const msg =
-    err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+    err instanceof Error
+      ? err.message.toLowerCase()
+      : String(err).toLowerCase();
   return (
     msg.includes("failed to fetch") ||
     msg.includes("network") ||
@@ -56,12 +60,10 @@ const SignIn: React.FC = () => {
           id: session.user.id,
           email: session.user.email || "",
         });
-        const { onboardingComplete, profileExists } = await syncProfile(true);
-        if (!profileExists || !onboardingComplete) {
-          navigate("/onboarding", { replace: true });
-        } else {
-          navigate("/dashboard", { replace: true });
-        }
+        await syncProfile(true);
+        const state = useUserStore.getState();
+        const dest = getPostLoginDestination(state);
+        navigate(dest.route, { replace: true });
       }
     });
   }, []);
@@ -123,7 +125,7 @@ const SignIn: React.FC = () => {
       setStep("otp");
       setCooldown(30);
     } catch (err) {
-       console.log("DEBUG:", err, (err as Error)?.message);
+      console.log("DEBUG:", err, (err as Error)?.message);
       setError(
         isNetworkError(err)
           ? NETWORK_ERROR_MESSAGE
@@ -132,7 +134,6 @@ const SignIn: React.FC = () => {
     } finally {
       setLoading(false);
     }
-    
   };
 
   // ── Verify OTP ────────────────────────────────────────
@@ -169,18 +170,20 @@ const SignIn: React.FC = () => {
           email: data.session.user.email || email,
         });
 
-        const { onboardingComplete, profileExists } = await syncProfile(true);
+        await syncProfile(true);
+        const state = useUserStore.getState();
+        const dest = getPostLoginDestination(state);
 
         console.log(
-          "✅ SignIn — onboardingComplete:",
-          onboardingComplete,
-          "profileExists:",
-          profileExists,
+          "✅ SignIn — destination:",
+          dest.route,
+          "isAdmin:",
+          state.isAdmin,
         );
 
-        navigate(onboardingComplete ? "/dashboard" : "/onboarding", {
-          replace: true,
-        });
+        // Fresh interactive sign-in: if admin is landing on /admin, arm welcome toast once
+        if (dest.route === "/admin") armAdminWelcomeToast();
+        navigate(dest.route, { replace: true });
       }
     } catch (err) {
       setError(

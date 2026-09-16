@@ -3,7 +3,10 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { supabase } from "../../lib/supabase";
-import { useUserStore } from "../../Store/useUserStore";
+import {
+  getPostLoginDestination,
+  useUserStore,
+} from "../../Store/useUserStore";
 import { motion } from "framer-motion";
 
 const AuthCallback: React.FC = () => {
@@ -28,16 +31,12 @@ const AuthCallback: React.FC = () => {
         // Wait for profile to sync
         await syncProfile();
 
-        // Check if onboarding is complete
-        const { onboardingComplete } = useUserStore.getState();
-
-        if (onboardingComplete) {
-          navigate("/dashboard");
-        } else {
-          navigate("/onboarding");
-        }
+        // Check post-login status off the FRESH store state
+        const state = useUserStore.getState();
+        const dest = getPostLoginDestination(state);
+        navigate(dest.route, { replace: true });
       } else {
-        navigate("/signin");
+        navigate("/signin", { replace: true });
       }
     };
 

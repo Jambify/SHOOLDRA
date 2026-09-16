@@ -1,5 +1,5 @@
 import React, { type ReactNode, useState, useRef } from "react";
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
 import { useProStatus } from "../../hooks/useProStatus";
@@ -69,28 +69,40 @@ const formatPageTitle = (slug: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
-const NavItem = ({ label, active, badge, icon, path }: any) => {
+const NavItem = ({ label, badge, icon, path }: any) => {
   const IconComponent = IconMap[icon] || LayoutGrid;
   return (
-    <Link
+    <NavLink
       to={path}
-      className={`rounded-brand group mb-0.5 flex cursor-pointer items-center gap-3 p-2.5 text-[13.5px] transition-all ${
-        active
-          ? "bg-brand/15 text-brand-light font-semibold shadow-[0_8px_24px_rgba(0,102,255,0.12)]"
-          : "text-textMuted hover:bg-bgCard hover:text-textMain"
-      }`}
+      end
+      className={({ isActive }) =>
+        cn(
+          "rounded-brand group mb-0.5 flex cursor-pointer items-center gap-3 p-2.5 text-[13.5px] transition-all duration-200 ease-out",
+          isActive
+            ? "bg-brand/12 text-brand-light shadow-brand/10 font-semibold shadow-md"
+            : "text-textMuted hover:bg-bgCard hover:text-textMain",
+        )
+      }
     >
-      <IconComponent
-        size={18}
-        className={`opacity-70 group-hover:opacity-100 ${active ? "opacity-100" : ""}`}
-      />
-      <span className="flex-1">{label}</span>
-      {badge && (
-        <span className="bg-brand min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow-[0_8px_24px_rgba(0,102,255,0.15)]">
-          {badge}
-        </span>
+      {({ isActive }) => (
+        <>
+          <IconComponent
+            size={18}
+            className={cn(
+              "transition-all duration-200 ease-out",
+              "opacity-70 group-hover:opacity-100",
+              isActive && "opacity-100",
+            )}
+          />
+          <span className="flex-1">{label}</span>
+          {badge && (
+            <span className="bg-brand shadow-brand/15 min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow">
+              {badge}
+            </span>
+          )}
+        </>
       )}
-    </Link>
+    </NavLink>
   );
 };
 
@@ -203,8 +215,9 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({ status }) => {
           <div className="mt-3">
             {ctaHref.startsWith("mailto:") ? (
               <a
-               href={ctaHref}
-                className="text-textMain inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold underline decoration-2 underline-offset-4 hover:opacity-80">
+                href={ctaHref}
+                className="text-textMain inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold underline decoration-2 underline-offset-4 hover:opacity-80"
+              >
                 <Mail className="h-3.5 w-3.5" /> Contact support
               </a>
             ) : (
@@ -242,7 +255,8 @@ const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({ status }) => {
   const isActive =
     status.status === "active" || status.status === "expiring_soon";
 
-  if (!isActive || status.welcomeBannerDismissed || !status.proRowId) return null;
+  if (!isActive || status.welcomeBannerDismissed || !status.proRowId)
+    return null;
 
   const isAdminGrant =
     status.planType === "admin_grant" ||
@@ -589,12 +603,7 @@ const AppLayout: React.FC<LayoutProps> = ({
               >
                 Main
               </h2>
-              <NavItem
-                label="Dashboard"
-                active={currentPage === "dashboard"}
-                icon="grid"
-                path="/dashboard"
-              />
+              <NavItem label="Dashboard" icon="grid" path="/dashboard" />
               <NavItem
                 label="Practice Quiz"
                 badge={3}
@@ -618,12 +627,8 @@ const AppLayout: React.FC<LayoutProps> = ({
                 Study
               </h2>
               <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
+              <NavItem label="Past Questions" icon="file" path="/past-questions" />
               <NavItem label="Study Groups" icon="users" path="/study-groups" />
-              <NavItem
-                label="Past Questions"
-                icon="settings"
-                path="/past-questions"
-              />
             </section>
 
             <section className="px-2 pt-2">
@@ -756,71 +761,75 @@ const AppLayout: React.FC<LayoutProps> = ({
             className="relative flex h-18 items-center justify-around px-1"
             aria-label="Mobile bottom navigation"
           >
-            <Link
+            <NavLink
               to="/dashboard"
-              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
+              end
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ease-out active:scale-90"
               aria-label="Dashboard"
             >
-              <div
-                className={cn(
-                  "rounded-xl p-2 transition-colors",
-                  currentPage === "dashboard" ? "bg-brand/10" : "",
-                )}
-              >
-                <LayoutGrid
-                  size={24}
-                  strokeWidth={currentPage === "dashboard" ? 2.5 : 2}
-                  className={
-                    currentPage === "dashboard"
-                      ? "text-brand-light"
-                      : "text-textDim"
-                  }
-                />
-              </div>
-              <span
-                className={cn(
-                  "text-[10px] font-bold tracking-tight transition-colors",
-                  currentPage === "dashboard"
-                    ? "text-brand-light"
-                    : "text-textDim/70",
-                )}
-              >
-                Dashboard
-              </span>
-            </Link>
+              {({ isActive }) => (
+                <>
+                  <div
+                    className={cn(
+                      "rounded-xl p-2 transition-all duration-200 ease-out",
+                      isActive && "bg-brand/12 shadow-brand/10 shadow-md",
+                    )}
+                  >
+                    <LayoutGrid
+                      size={24}
+                      strokeWidth={isActive ? 2.5 : 2}
+                      className={cn(
+                        "transition-colors duration-200 ease-out",
+                        isActive ? "text-brand-light" : "text-textDim",
+                      )}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold tracking-tight transition-colors duration-200 ease-out",
+                      isActive ? "text-brand-light" : "text-textDim/70",
+                    )}
+                  >
+                    Dashboard
+                  </span>
+                </>
+              )}
+            </NavLink>
 
-            <Link
+            <NavLink
               to="/subjects"
-              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
+              end
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ease-out active:scale-90"
               aria-label="Subjects"
             >
-              <div
-                className={cn(
-                  "rounded-xl p-2 transition-colors",
-                  currentPage === "subjects" ? "bg-brand/10" : "",
-                )}
-              >
-                <BookOpen
-                  size={24}
-                  strokeWidth={currentPage === "subjects" ? 2.5 : 2}
-                  className={
-                    currentPage === "subjects"
-                      ? "text-brand-light"
-                      : "text-textDim"
-                  }
-                />
-              </div>
-              <span
-                className={cn(
-                  "text-[10px] font-bold tracking-tight transition-colors",
-                  currentPage === "subjects"
-                    ? "text-brand-light"
-                    : "text-textDim/70",
-                )}
-              >
-                Subjects
-              </span>
-            </Link>
+              {({ isActive }) => (
+                <>
+                  <div
+                    className={cn(
+                      "rounded-xl p-2 transition-all duration-200 ease-out",
+                      isActive && "bg-brand/12 shadow-brand/10 shadow-md",
+                    )}
+                  >
+                    <BookOpen
+                      size={24}
+                      strokeWidth={isActive ? 2.5 : 2}
+                      className={cn(
+                        "transition-colors duration-200 ease-out",
+                        isActive ? "text-brand-light" : "text-textDim",
+                      )}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold tracking-tight transition-colors duration-200 ease-out",
+                      isActive ? "text-brand-light" : "text-textDim/70",
+                    )}
+                  >
+                    Subjects
+                  </span>
+                </>
+              )}
+            </NavLink>
 
             <div className="relative flex h-full flex-1 justify-center">
               <Link
@@ -828,7 +837,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                 className="group absolute -top-6 flex flex-col items-center gap-1"
                 aria-label="Quiz"
               >
-                <div className="bg-brand border-bgCard dark:border-bgMain flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-[0_12px_30px_rgba(0,102,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95">
+                <div className="bg-brand border-bgCard dark:border-bgMain shadow-brand/35 flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-2xl transition-all duration-200 ease-out group-hover:scale-105 group-active:scale-95">
                   <FileText size={26} className="-rotate-45 text-white" />
                 </div>
                 <span className="text-brand-light text-[10px] font-black tracking-tighter uppercase">
@@ -837,71 +846,74 @@ const AppLayout: React.FC<LayoutProps> = ({
               </Link>
             </div>
 
-            <Link
+            <NavLink
               to="/performance"
-              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
+              end
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ease-out active:scale-90"
               aria-label="Performance"
             >
-              <div
-                className={cn(
-                  "rounded-xl p-2 transition-colors",
-                  currentPage === "performance" ? "bg-brand/10" : "",
-                )}
-              >
-                <Activity
-                  size={24}
-                  strokeWidth={currentPage === "performance" ? 2.5 : 2}
-                  className={
-                    currentPage === "performance"
-                      ? "text-brand-light"
-                      : "text-textDim"
-                  }
-                />
-              </div>
-              <span
-                className={cn(
-                  "text-[10px] font-bold tracking-tight transition-colors",
-                  currentPage === "performance"
-                    ? "text-brand-light"
-                    : "text-textDim/70",
-                )}
-              >
-                Performance
-              </span>
-            </Link>
+              {({ isActive }) => (
+                <>
+                  <div
+                    className={cn(
+                      "rounded-xl p-2 transition-all duration-200 ease-out",
+                      isActive && "bg-brand/12 shadow-brand/10 shadow-md",
+                    )}
+                  >
+                    <Activity
+                      size={24}
+                      strokeWidth={isActive ? 2.5 : 2}
+                      className={cn(
+                        "transition-colors duration-200 ease-out",
+                        isActive ? "text-brand-light" : "text-textDim",
+                      )}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold tracking-tight transition-colors duration-200 ease-out",
+                      isActive ? "text-brand-light" : "text-textDim/70",
+                    )}
+                  >
+                    Performance
+                  </span>
+                </>
+              )}
+            </NavLink>
 
-            <Link
+            <NavLink
               to="/settings"
-              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ease-out active:scale-90"
               aria-label="Profile"
             >
-              <div
-                className={cn(
-                  "rounded-xl p-2 transition-colors",
-                  currentPage === "settings" ? "bg-brand/10" : "",
-                )}
-              >
-                <Settings
-                  size={24}
-                  strokeWidth={currentPage === "settings" ? 2.5 : 2}
-                  className={
-                    currentPage === "settings"
-                      ? "text-brand-light"
-                      : "text-textDim"
-                  }
-                />
-              </div>
-              <span
-                className={cn(
-                  "text-[10px] font-bold tracking-tight transition-colors",
-                  currentPage === "settings"
-                    ? "text-brand-light"
-                    : "text-textDim/70",
-                )}
-              >
-                Settings
-              </span>
-            </Link>
+              {({ isActive }) => (
+                <>
+                  <div
+                    className={cn(
+                      "rounded-xl p-2 transition-all duration-200 ease-out",
+                      isActive && "bg-brand/12 shadow-brand/10 shadow-md",
+                    )}
+                  >
+                    <Settings
+                      size={24}
+                      strokeWidth={isActive ? 2.5 : 2}
+                      className={cn(
+                        "transition-colors duration-200 ease-out",
+                        isActive ? "text-brand-light" : "text-textDim",
+                      )}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold tracking-tight transition-colors duration-200 ease-out",
+                      isActive ? "text-brand-light" : "text-textDim/70",
+                    )}
+                  >
+                    Settings
+                  </span>
+                </>
+              )}
+            </NavLink>
           </nav>
         </div>
       )}
