@@ -86,6 +86,12 @@ const SUBJECT_COLORS: Record<string, string> = {
 // sign-up CTA instead of endless pagination.
 const FREE_PREVIEW_LIMIT = 12;
 
+// Fetching is always scoped to a single subject — "All" is never passed to
+// fetchAllQuestionsForBrowse. When the URL has no :subject param, we still
+// fetch questions (rather than showing nothing) by defaulting the FETCH
+// ONLY to the first entry in ALL_SUBJECTS.
+const DEFAULT_FETCH_SUBJECT = ALL_SUBJECTS[0]; // "English"
+
 const GuestPastQuestions = () => {
   const navigate = useNavigate();
   const { subject: subjectSlug, year: yearParam } = useParams<{
@@ -102,6 +108,12 @@ const GuestPastQuestions = () => {
 
   const year = yearParam && VALID_YEAR_SET.has(yearParam) ? yearParam : "All";
 
+  // The subject actually used for fetching AND for the dropdown's displayed
+  // value. Never "All" — falls back to DEFAULT_FETCH_SUBJECT so the base
+  // /guest/past-questions route still shows real questions and the <select>
+  // always has a valid, selectable option to display.
+  const fetchSubject = subject === "All" ? DEFAULT_FETCH_SUBJECT : subject;
+
   // Search stays local — it's a live filter, not something worth its own URL.
   const [search, setSearch] = useState("");
 
@@ -117,7 +129,7 @@ const GuestPastQuestions = () => {
       setLoadingError(null);
       try {
         const qs = await fetchAllQuestionsForBrowse(
-          subject,
+          fetchSubject,
           year,
           "All",
           "All",
@@ -135,7 +147,7 @@ const GuestPastQuestions = () => {
     return () => {
       isMounted = false;
     };
-  }, [subject, year]);
+  }, [fetchSubject, year]);
 
   const filteredQuestions = useMemo(() => {
     return questions.filter((q) => {
@@ -162,14 +174,15 @@ const GuestPastQuestions = () => {
   };
 
   const handleSubjectChange = (newSubject: string) => {
-    navigate(buildPath(newSubject, newSubject === "All" ? "All" : year));
+    navigate(buildPath(newSubject, year));
   };
 
   const handleYearChange = (newYear: string) => {
-    // A year alone has no clean URL slot without a subject — ignore until
-    // a subject is picked (the <select> is disabled below in that case too).
-    if (subject === "All") return;
-    navigate(buildPath(subject, newYear));
+    // Build off fetchSubject (always a real subject) rather than the raw
+    // URL-derived `subject`, so picking a year works even before the user
+    // has explicitly chosen a subject in the URL (e.g. on first load at
+    // the bare /guest/past-questions route).
+    navigate(buildPath(fetchSubject, newYear));
   };
 
   const resetExpanded = () => setExpandedId(null);
@@ -252,6 +265,13 @@ const GuestPastQuestions = () => {
           </div>
           <p className="text-textDim text-sm">
             Practice real JAMB past questions, free — no account needed.
+            {subject === "All" && (
+              <>
+                {" "}
+                Showing <span className="font-semibold">{DEFAULT_FETCH_SUBJECT}</span> to
+                start — pick a subject below to switch.
+              </>
+            )}
           </p>
         </div>
 
@@ -279,15 +299,18 @@ const GuestPastQuestions = () => {
               <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Subject
               </label>
+              {/* "All Subjects" option removed — dropdown value now tracks
+                  fetchSubject (always a real subject) instead of the raw
+                  URL-derived `subject`, which could be "All" and would have
+                  no matching option to display. */}
               <select
-                value={subject}
+                value={fetchSubject}
                 onChange={(e) => {
                   handleSubjectChange(e.target.value);
                   resetExpanded();
                 }}
                 className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
-                <option value="All">All Subjects</option>
                 {ALL_SUBJECTS.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -306,8 +329,7 @@ const GuestPastQuestions = () => {
                   handleYearChange(e.target.value);
                   resetExpanded();
                 }}
-                disabled={subject === "All"}
-                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none disabled:opacity-50"
+                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
                 {VALID_YEARS.map((y) => (
                   <option key={y} value={y}>
