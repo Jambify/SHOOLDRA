@@ -51,7 +51,6 @@ import ScrollToTop from "./components/Scrolltotop";
 import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
 import ProRevokedModal from "./components/auth/ProRevokedModal";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import schooldraLogo from "./assets/schooldraLogo.webp";
 
 // ── Skeletons (only for pages that fetch data on mount) ──────
 

@@ -19,6 +19,9 @@ const ALL_SUBJECTS = [
 const CRITICAL_ROUTES = ["/"];
 
 const OTHER_ROUTES = [
+  "/about", // founder/entity page — must be a physical prerendered file so
+  // non-JS-executing crawlers (LinkedIn, X, most SEO bots) see the founder
+  // bio + structured data instead of the bare SPA shell.
   "/guest",
   "/guest/quiz",
   "/guest/mock",

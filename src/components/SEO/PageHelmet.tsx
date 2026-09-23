@@ -22,6 +22,17 @@ const SITE_NAME = "SCHOOLDRA";
 const LOCALE = "en_NG";
 const TWITTER_HANDLE = "@sha_dra_ch";
 
+// NOTE: this component intentionally does NOT emit an EducationalOrganization
+// JSON-LD block. That schema lives once, site-wide, in index.html — it
+// describes the Organization itself (name, founder, sameAs), which doesn't
+// change per page and shouldn't be re-declared with a different `url` on
+// every route. Emitting it here too previously caused two conflicting
+// copies of the same entity to ship on every page (see index.html's
+// comment near its <script type="application/ld+json"> block for the
+// canonical version). Page-specific structured data (e.g. the founder's
+// Person schema on /about) belongs in that page's own component, passed
+// through the `children` prop below.
+
 /**
  * PageHelmet Component
  *
@@ -49,35 +60,6 @@ const PageHelmet: React.FC<PageHelmetProps> = ({
   children,
 }) => {
   const resolvedImage = ogImage || DEFAULT_OG_IMAGE;
-  const resolvedUrl = canonical || "https://www.schooldra.com";
-
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    additionalType: "https://schema.org/WebApplication",
-    name: SITE_NAME,
-    url: resolvedUrl,
-    logo: DEFAULT_OG_IMAGE,
-    image: resolvedImage,
-    description,
-    sameAs: [
-      "https://www.instagram.com/shreda_shadrach",
-      "https://x.com/sha_dra_ch",
-    ],
-    potentialAction: {
-      "@type": "JoinAction",
-      target: "https://www.schooldra.com/signup",
-    },
-    creator: {
-      "@type": "Person",
-      name: "Shadrach",
-    },
-    audience: {
-      "@type": "EducationalAudience",
-      educationalRole: "student",
-      audienceType: "Secondary School Students",
-    },
-  };
 
   return (
     <Helmet>
@@ -104,10 +86,6 @@ const PageHelmet: React.FC<PageHelmetProps> = ({
       <meta name="twitter:description" content={ogDescription || description} />
       <meta name="twitter:image" content={resolvedImage} />
       <meta property="twitter:creator" content={TWITTER_HANDLE} />
-
-      <script type="application/ld+json">
-        {JSON.stringify(structuredData)}
-      </script>
 
       {children}
     </Helmet>

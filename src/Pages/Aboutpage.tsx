@@ -6,13 +6,10 @@
  * this isn't meant to be split into reorderable Landing/ components like
  * Hero or Pricing, since it's a single fixed narrative, not a section
  * that gets A/B tested.
- *
- * TODO (Shreda): still says "someone close to me" on purpose — swap in
- * the real relationship (cousin / sibling / friend) if you're comfortable
- * naming it.
  */
 
 import React from "react";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import PageHelmet from "../components/SEO/PageHelmet";
@@ -27,7 +24,9 @@ import {
   ArrowRight,
   Mail,
   Hand,
+  X,
 } from "lucide-react";
+import { FaInstagram } from 'react-icons/fa';
 
 const TIMELINE = [
   {
@@ -65,9 +64,27 @@ const FEATURES = [
   },
 ];
 
-// Shared scroll-reveal variants — fade + rise, once per element, so the
-// page feels alive on first visit without replaying every time someone
-// scrolls back up past a section.
+const FOUNDER = {
+  name: "Shadrach",
+  alternateName: "Shreda",
+  title: "Founder & Builder of Schooldra",
+  bio: "I'm Shadrach (also known as Shreda), a solo developer based in Lagos, Nigeria. I design, build, and maintain every part of Schooldra myself from the quiz engine to the backend powering it. I started this after watching someone close to me struggle through JAMB prep with nothing but scattered PDFs and ad-choked YouTube videos, and I've kept building it into a full exam-prep platform for Nigerian students ever since.",
+};
+
+// FIX: Store component references instead of mixed JSX elements / component pointers
+const FOUNDER_SOCIALS = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/shreda_shadrach",
+    icon: FaInstagram,
+  },
+  {
+    label: "X (Twitter)",
+    href: "https://x.com/sha_dra_ch",
+    icon: X,
+  },
+];
+
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
   visible: { opacity: 1, y: 0 },
@@ -78,14 +95,34 @@ const AboutPage: React.FC = () => {
     <>
       <PageHelmet
         title="About Schooldra — why we built this"
-        description="Schooldra started as a tool built for one person prepping for JAMB. Here's the friendly story behind it, and what it actually does."
+        description="Schooldra started as a tool built for one person prepping for JAMB. Here's the friendly story behind it, what it actually does, and who built it."
         canonical="https://www.schooldra.com/about"
       />
+
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            name: FOUNDER.name,
+            alternateName: FOUNDER.alternateName,
+            jobTitle: "Founder",
+            description: FOUNDER.bio,
+            url: "https://www.schooldra.com/about",
+            worksFor: {
+              "@type": "Organization",
+              name: "Schooldra",
+              url: "https://www.schooldra.com",
+            },
+            sameAs: FOUNDER_SOCIALS.map((s) => s.href),
+          })}
+        </script>
+      </Helmet>
 
       <div className="bg-bgMain text-textMain min-h-screen">
         <Navbar />
 
-        {/* ── Hero: the founder story is the visual anchor ── */}
+        {/* ── Hero ── */}
         <section className="relative overflow-hidden px-4 pt-20 pb-16 sm:pt-28 sm:pb-20">
           <div
             className="ambient-glow pointer-events-none absolute inset-0"
@@ -119,7 +156,7 @@ const AboutPage: React.FC = () => {
           </motion.div>
         </section>
 
-        {/* ── Timeline: a real sequence, not a decorative one ── */}
+        {/* ── Timeline ── */}
         <section className="px-4 pb-20">
           <div className="mx-auto max-w-3xl">
             <div className="space-y-8">
@@ -242,18 +279,38 @@ const AboutPage: React.FC = () => {
           viewport={{ once: true, amount: 0.6 }}
           variants={fadeUp}
           transition={{ duration: 0.5 }}
-          className="px-4 pb-4 text-center"
+          className="px-4 pb-4"
         >
-          <div className="mx-auto max-w-md">
+          <div className="border-borderMuted bg-bgCard rounded-brand-2xl mx-auto max-w-2xl border p-7 text-center sm:p-8">
             <div className="bg-brand/10 text-brand-light mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-lg font-black">
               SH
             </div>
             <p className="font-display text-textMain text-base font-bold">
-              Shadrach
+              {FOUNDER.name}
             </p>
-            <p className="text-textDim text-xs font-semibold tracking-wide uppercase">
-              aka Shreda — builder of Schooldra
+            <p className="text-textDim mb-4 text-xs font-semibold tracking-wide uppercase">
+              aka {FOUNDER.alternateName} — {FOUNDER.title}
             </p>
+            <p className="text-textMuted mx-auto max-w-lg text-sm leading-relaxed">
+              {FOUNDER.bio}
+            </p>
+            <div className="mt-5 flex items-center justify-center gap-3">
+              {FOUNDER_SOCIALS.map((s) => {
+                const IconComponent = s.icon;
+                return (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="me noopener noreferrer"
+                    aria-label={s.label}
+                    className="border-borderMuted text-textDim hover:text-brand hover:border-brand/40 flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
+                  >
+                    <IconComponent size={16} />
+                  </a>
+                );
+              })}
+            </div>
           </div>
         </motion.section>
 
