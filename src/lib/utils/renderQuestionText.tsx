@@ -53,26 +53,41 @@ function renderPlainSegment(
       ? formatScienceText(segment)
       : segment;
 
-  // Non-English subjects never get bracket->underline treatment — their
-  // [brackets] mean "given data," not "underline this."
+  // Non-English subjects never get bracket->underline treatment
   if (subject && subject !== "English") {
     return [<React.Fragment key={keyPrefix}>{prepared}</React.Fragment>];
   }
 
-  const parts = prepared.split(/(\[[^\[\]]+\])/g);
+  // Split on BOTH <u>...</u> AND [brackets]
+  const parts = prepared.split(/(<u>[^<]*<\/u>|\[[^\[\]]+\])/g);
   return parts.map((part, i) => {
-    const match = part.match(/^\[([^\[\]]+)\]$/);
-    if (match) {
+    // Handle <u>word</u>
+    const uMatch = part.match(/^<u>([^<]*)<\/u>$/);
+    if (uMatch) {
       return (
-        <span key={`${keyPrefix}-${i}`} className="underline decoration-2 underline-offset-2">
-          {match[1]}
+        <span
+          key={`${keyPrefix}-${i}`}
+          className="underline decoration-2 underline-offset-2"
+        >
+          {uMatch[1]}
+        </span>
+      );
+    }
+    // Handle [bracket]
+    const bracketMatch = part.match(/^\[([^\[\]]+)\]$/);
+    if (bracketMatch) {
+      return (
+        <span
+          key={`${keyPrefix}-${i}`}
+          className="underline decoration-2 underline-offset-2"
+        >
+          {bracketMatch[1]}
         </span>
       );
     }
     return <React.Fragment key={`${keyPrefix}-${i}`}>{part}</React.Fragment>;
   });
 }
-
 export function renderQuestionText(text: string, subject?: string): React.ReactNode[] {
   // Fast path: no "$" at all means no LaTeX, skip straight to the
   // existing plain-text pipeline (this covers the vast majority of rows).
