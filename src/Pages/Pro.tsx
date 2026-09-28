@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import PageHelmet from "../components/SEO/PageHelmet";
 import AppLayout from "../components/Layout/AppLayout";
-import ExamPaywall from "../components/MockExam/ExamPaywall";
+import ProGate from "../components/pro/ProGate";
 import { useNavigate } from "react-router";
-import { useUserStore } from "../Store/useUserStore";
 import { Crown, CheckCircle } from "lucide-react";
 
 const ProPage: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { isPro } = useUserStore();
 
   return (
     <AppLayout
@@ -23,8 +21,13 @@ const ProPage: React.FC = () => {
         canonical="https://www.schooldra.com/pro"
       />
       <div className="mx-auto max-w-4xl py-6">
-        {isPro ? (
-          <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-8 text-center shadow-xl">
+        {/*
+          No `title`/`description` props passed here — ProGate's default
+          paywall copy applies. If not Pro (or still loading), ProGate
+          renders its own skeleton/paywall and these children never mount.
+        */}
+        <ProGate>
+          <div className="bg-bgCard border-borderMuted rounded-brand-xl animate-in fade-in slide-in-from-bottom-4 border p-8 text-center shadow-xl duration-500">
             <div className="bg-success/10 border-success/20 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border">
               <Crown className="text-success h-10 w-10" />
             </div>
@@ -33,8 +36,8 @@ const ProPage: React.FC = () => {
             </h1>
             <p className="text-textDim mx-auto mb-8 max-w-md leading-relaxed">
               Thank you for supporting Schooldra. You have access to AI
-              explanations, detailed mock reviews, offline question packs, and
-              performance analytics.
+              explanations, detailed mock reviews, offline question packs,
+              and performance analytics.
             </p>
 
             <div className="mx-auto mb-10 grid max-w-2xl gap-4 text-left sm:grid-cols-2">
@@ -65,18 +68,7 @@ const ProPage: React.FC = () => {
               Back to Dashboard
             </button>
           </div>
-        ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <ExamPaywall
-              onUpgrade={() => {
-                // The ExamPaywall already handles the upgrade logic
-                // and syncs with the user store.
-                window.location.reload();
-              }}
-              onBack={() => navigate("/dashboard")}
-            />
-          </div>
-        )}
+        </ProGate>
       </div>
     </AppLayout>
   );

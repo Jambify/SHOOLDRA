@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
-  BookOpen,
+  CalendarPlus,
+  CheckCircle2,
   ClipboardCheck,
   Crown,
   Download,
   Lock,
   ShieldCheck,
-  SlidersHorizontal,
   Sparkles,
-  TrendingUp,
-  CheckCircle2,
   type LucideIcon,
 } from "lucide-react";
 import { useUserStore, APP_CONFIG } from "../../Store/useUserStore";
+import { useProStatus } from "../../hooks/useProStatus"; // adjust path if your hook lives elsewhere
 import Button from "../ui/Button";
 import { supabase } from "../../lib/supabase";
 
@@ -25,17 +24,24 @@ declare global {
 interface FlutterwaveCallbackData {
   status: string;
   tx_ref: string;
+  transaction_id?: number | string;
+  id?: number | string;
   [key: string]: unknown;
 }
 
 interface ProGateProps {
-  /** Heading shown at the top. Pass the feature being locked, e.g. "Offline Past Questions". */
+  /** Heading for the locked feature, e.g. "Offline Past Questions". */
   title?: string;
-  /** One or two sentences explaining what the student gets. */
+  /** One or two sentences about what the student unlocks. */
   description?: string;
+  /**
+   * Gate mode: pass the Pro-only content as children. Pro users see it,
+   * everyone else sees the upgrade page. With no children, ProGate always
+   * shows the upgrade page (e.g. a renewal screen).
+   */
+  children?: React.ReactNode;
 }
 
-const FALLBACK_QUESTION_COUNT = 4180;
 const FLW_SCRIPT_ID = "flutterwave-checkout-script";
 const PRO_DURATION_DAYS = 30;
 
@@ -51,11 +57,36 @@ interface Feature {
   desc: string;
 }
 
+const FEATURES: Feature[] = [
+  {
+    icon: Download,
+    title: "Study offline",
+    desc: "Download subject packs and practise without data.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Full mock exam review",
+    desc: "Go through every question and see where you dropped marks.",
+  },
+  {
+    icon: Sparkles,
+    title: "AI Tutor",
+    desc: "Clear explanations on past questions and mock review.",
+  },
+  {
+    icon: CalendarPlus,
+    title: "Renew early, keep your days",
+    desc: `Renewing adds ${PRO_DURATION_DAYS} days on top of what you have left.`,
+  },
+];
+
 const ProGate: React.FC<ProGateProps> = ({
   title = "Unlock Schooldra Pro",
   description = "Practise smarter, revise faster and walk into JAMB with confidence.",
+  children,
 }) => {
   const { upgradeToPro, name, email } = useUserStore();
+  const { isPro, isLoading, refresh } = useProStatus();
   const { CURRENCY, DISPLAY_PRICE } = APP_CONFIG.PRICING;
   const amount = parsePrice(DISPLAY_PRICE, 3000);
 
@@ -63,105 +94,37 @@ const ProGate: React.FC<ProGateProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
-  const [questionCount, setQuestionCount] = useState<number>(
-    FALLBACK_QUESTION_COUNT,
-  );
 
   // Flutterwave calls onclose even after a successful payment; this stops the
-  // "Are you sure?" modal from appearing to people who just paid.
+  // "Leaving so soon?" modal from appearing to people who just paid.
   const paymentCompleted = useRef(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  const isGateMode = children !== undefined && children !== null;
 
-    async function fetchCount() {
-      const { count, error } = await supabase
-        .from("questions")
-        .select("id", { count: "exact", head: true });
-
-      if (!cancelled && !error && typeof count === "number") {
-        setQuestionCount(count);
-      }
-      // On error the count stays at FALLBACK_QUESTION_COUNT (silent).
-    }
-
-    fetchCount();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const formattedCount = questionCount.toLocaleString();
-
-  const features: Feature[] = [
-    {
-      icon: BookOpen,
-      title: `${formattedCount}+ real JAMB questions`,
-      desc: "From the available question bank.",
-    },
-    {
-      icon: Download,
-      title: "Study offline",
-      desc: "Download subject packs and practise without data.",
-    },
-    {
-      icon: Sparkles,
-      title: "AI Tutor",
-      desc: "Clear explanations for practice questions.",
-    },
-    {
-      icon: ClipboardCheck,
-      title: "Mock exam review",
-      desc: "See exactly where you dropped marks.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Weak-topic tracking",
-      desc: "Know what to revise next.",
-    },
-    {
-      icon: SlidersHorizontal,
-      title: "Smart filters",
-      desc: "Browse by subject, year, topic and difficulty.",
-    },
-  ];
-
+  // Server-side verification only. This function does NOT write to
+  // pro_users itself anymore — it hands the transaction to the
+  // verify-payment edge function, which re-checks it with Flutterwave
+  // using the secret key and activates Pro with the service role. See
+  // supabase/functions/verify-payment.
   const recordPayment = async (data: FlutterwaveCallbackData) => {
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("No active session");
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) throw new Error("No active session");
 
-    const { data: currentPro, error: currentProError } = await supabase
-      .from("pro_users")
-      .select("expires_at")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (currentProError) throw currentProError;
+    const transactionId = data.transaction_id ?? data.id;
+    if (!transactionId) throw new Error("Missing transaction id from Flutterwave");
 
-    const now = new Date();
-    const currentExpiry = currentPro?.expires_at
-      ? new Date(currentPro.expires_at)
-      : now;
-    const renewalBase =
-      currentExpiry.getTime() > now.getTime() ? currentExpiry : now;
-
-    const { error: paymentError } = await supabase.from("pro_users").upsert(
+    const { data: result, error: fnError } = await supabase.functions.invoke(
+      "verify-payment",
       {
-        user_id: user.id,
-        email: user.email,
-        payment_reference: data.tx_ref,
-        amount,
-        status: "active",
-        plan_type: "monthly",
-        expires_at: new Date(
-          renewalBase.getTime() + PRO_DURATION_DAYS * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        updated_at: new Date().toISOString(),
+        body: { transaction_id: transactionId, tx_ref: data.tx_ref },
       },
-      { onConflict: "user_id" },
     );
-    if (paymentError) throw paymentError;
+    if (fnError) throw fnError;
+    if (!result?.ok) {
+      throw new Error(result?.error || "Payment could not be verified");
+    }
   };
 
   const processPayment = () => {
@@ -206,6 +169,7 @@ const ProGate: React.FC<ProGateProps> = ({
           try {
             await recordPayment(data);
             await upgradeToPro();
+            await refresh();
             setIsPaid(true);
           } catch (err) {
             console.error("Error recording payment:", err);
@@ -233,28 +197,39 @@ const ProGate: React.FC<ProGateProps> = ({
 
     setIsInitiating(true);
 
-    const onLoaded = () => {
-      setIsInitiating(false);
-      processPayment();
-    };
-    const onFailed = () => {
-      setIsInitiating(false);
-      setError("Failed to load payment gateway. Check your network and retry.");
-    };
-
-    const existing = document.getElementById(
-      FLW_SCRIPT_ID,
-    ) as HTMLScriptElement | null;
+    const existing = document.getElementById(FLW_SCRIPT_ID);
     if (existing) existing.remove(); // a previous attempt failed; retry cleanly
 
     const script = document.createElement("script");
     script.id = FLW_SCRIPT_ID;
     script.src = "https://checkout.flutterwave.com/v3.js";
     script.async = true;
-    script.onload = onLoaded;
-    script.onerror = onFailed;
+    script.onload = () => {
+      setIsInitiating(false);
+      processPayment();
+    };
+    script.onerror = () => {
+      setIsInitiating(false);
+      setError("Failed to load payment gateway. Check your network and retry.");
+    };
     document.body.appendChild(script);
   };
+
+  // ---- Gate mode: single source of truth is useProStatus ----
+  if (isGateMode) {
+    if (isLoading) {
+      return (
+        <div
+          aria-busy="true"
+          className="mx-auto w-full max-w-md animate-pulse space-y-3 py-6 sm:max-w-2xl"
+        >
+          <div className="bg-bgCard rounded-brand-lg h-32" />
+          <div className="bg-bgCard rounded-brand-lg h-48" />
+        </div>
+      );
+    }
+    if (isPro) return <>{children}</>;
+  }
 
   if (isPaid) {
     return (
@@ -300,19 +275,19 @@ const ProGate: React.FC<ProGateProps> = ({
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <span className="bg-bgCard/80 border-borderMuted inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold">
-                <BookOpen className="text-brand-light h-3.5 w-3.5" />
-                {formattedCount}+ questions
-              </span>
-              <span className="bg-bgCard/80 border-borderMuted inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold">
-                <Download className="text-brand-light h-3.5 w-3.5" />
-                Offline packs
-              </span>
-              <span className="bg-bgCard/80 border-borderMuted inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold">
-                <Sparkles className="text-brand-light h-3.5 w-3.5" />
-                AI Tutor
-              </span>
+              {["Offline packs", "Mock review", "AI Tutor"].map((chip) => (
+                <span
+                  key={chip}
+                  className="bg-bgCard/80 border-borderMuted rounded-full border px-3 py-1.5 text-xs font-semibold"
+                >
+                  {chip}
+                </span>
+              ))}
             </div>
+
+            <p className="text-textDim mt-4 text-xs">
+              Practising past questions online stays free for everyone.
+            </p>
           </div>
         </div>
 
@@ -372,7 +347,7 @@ const ProGate: React.FC<ProGateProps> = ({
             What you get with Pro
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
-            {features.map(({ icon: Icon, title: fTitle, desc }) => (
+            {FEATURES.map(({ icon: Icon, title: fTitle, desc }) => (
               <div
                 key={fTitle}
                 className="border-borderMuted flex items-start gap-3 rounded-xl border p-3"
@@ -381,9 +356,7 @@ const ProGate: React.FC<ProGateProps> = ({
                   <Icon className="h-4 w-4" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm leading-snug font-semibold">
-                    {fTitle}
-                  </p>
+                  <p className="text-sm leading-snug font-semibold">{fTitle}</p>
                   <p className="text-textMuted mt-0.5 text-xs">{desc}</p>
                 </div>
               </div>

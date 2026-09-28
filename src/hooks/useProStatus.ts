@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserStore } from "../Store/useUserStore";
 import { supabase } from "../lib/supabase";
 
@@ -34,6 +34,14 @@ interface ProStatusData {
 }
 
 export interface ProStatusInfo extends ProStatusData {
+  /** Alias of isActive — the field name ProGate and newer gates read. */
+  isPro: boolean;
+  /** True until the first pro_users check for this user has resolved.
+   *  Gates must show a neutral/loading state while this is true, never
+   *  the paywall — otherwise Pro users flash the upgrade page on load. */
+  isLoading: boolean;
+  /** Re-run the pro_users check now (e.g. right after a payment activates). */
+  refresh: () => Promise<void>;
   dismissStatusBanner: () => Promise<void>;
   dismissWelcomeBanner: () => Promise<void>;
 }
@@ -87,14 +95,9 @@ const EMPTY_STATE: ProStatusData = {
   welcomeBannerDismissed: false,
 };
 
-// FIX: the owner account (admin_users.is_owner = true) is protected at the
-// DB level by prevent_owner_pro_tamper — any UPDATE to its pro_users row
-// (including this hook's own stale-row sync below) is rejected by that
-// trigger. But without this bypass, the client-side expiry check ran
-// anyway, computed treatedAsExpired from the row's expires_at regardless
-// of whether the DB write succeeded, and showed the owner an "expired"
-// banner it can never actually renew through the normal /pro/renew flow
-// (that's blocked too, by design). Owner status is permanent and doesn't
+// The owner account (admin_users.is_owner = true) is protected at the DB
+// level by prevent_owner_pro_tamper — any UPDATE to its pro_users row is
+// rejected by that trigger. Owner status is permanent and doesn't
 // participate in the pro_users expiry lifecycle at all.
 const OWNER_ACTIVE_STATE = (rowId: string | null): ProStatusData => ({
   isActive: true,
@@ -114,35 +117,38 @@ const OWNER_ACTIVE_STATE = (rowId: string | null): ProStatusData => ({
 export const useProStatus = (): ProStatusInfo => {
   const userId = useUserStore((s) => s.id);
   const isOwner = useUserStore((s) => s.isOwner);
-  const downgradeToPro = useUserStore((s) => s.downgradeToPro);
-  const storeIsPro = useUserStore((s) => s.isPro);
 
-  const [info, setInfo] = useState<ProStatusData>({
-    ...EMPTY_STATE,
-    isActive: storeIsPro,
-  });
+  const [info, setInfo] = useState<ProStatusData>(EMPTY_STATE);
+  const [isLoading, setIsLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const hasSyncedRef = useRef(false);
+  const proRowIdRef = useRef<string | null>(null);
+  proRowIdRef.current = info.proRowId;
 
   useEffect(() => {
     let cancelled = false;
+
     if (!userId) {
       hasSyncedRef.current = false;
       setInfo(EMPTY_STATE);
+      setIsLoading(false);
       return;
     }
 
-    // FIX: owner bypass — skip the pro_users fetch, all expiry branching,
-    // and the stale-row sync write entirely. Nothing here should ever
-    // attempt to modify the owner's pro_users row; the DB trigger would
-    // reject it, and the account shouldn't be subject to expiry at all.
+    // Owner bypass — skip the pro_users fetch entirely. Nothing here should
+    // ever attempt to modify the owner's pro_users row; the DB trigger
+    // would reject it, and the account isn't subject to expiry at all.
     if (isOwner) {
       hasSyncedRef.current = false;
-      setInfo(OWNER_ACTIVE_STATE(info.proRowId));
+      setInfo(OWNER_ACTIVE_STATE(proRowIdRef.current));
+      setIsLoading(false);
       return;
     }
 
     const check = async () => {
+      setIsLoading(true);
+
       const { data: proRow } = await supabase
         .from("pro_users")
         .select(
@@ -158,6 +164,7 @@ export const useProStatus = (): ProStatusInfo => {
       if (!proRow) {
         hasSyncedRef.current = false;
         setInfo(EMPTY_STATE);
+        setIsLoading(false);
         return;
       }
 
@@ -205,21 +212,27 @@ export const useProStatus = (): ProStatusInfo => {
             statusBannerDismissed,
             welcomeBannerDismissed,
           });
+          setIsLoading(false);
           return;
         }
 
+        // Self-correct the row's status from 'active' to 'expired' once
+        // its expires_at has passed. enforce_pro_users_self_update_columns
+        // explicitly allows this one transition for the row's own user.
+        // We do NOT write profiles.is_pro here — that column is now
+        // protected against browser writes (protect_profile_is_pro
+        // trigger) and would be silently ignored. Pro status for gating
+        // is read from this hook's own computed isPro, never from
+        // profiles.is_pro, so nothing depends on that write anymore.
+        // The nightly/hourly reconcile job is the backstop for anyone who
+        // never reopens the app before their reminder is due.
         try {
           await supabase
             .from("pro_users")
             .update({ status: "expired" })
             .eq("id", rowId);
-          await supabase
-            .from("profiles")
-            .update({ is_pro: false })
-            .eq("id", userId);
-          if (!cancelled) downgradeToPro();
         } catch (err) {
-          console.error("[useProStatus] stale sync failed:", err);
+          console.error("[useProStatus] stale status sync failed:", err);
         }
         if (cancelled) return;
       }
@@ -267,6 +280,7 @@ export const useProStatus = (): ProStatusInfo => {
               welcomeBannerDismissed,
             });
           }
+          setIsLoading(false);
           return;
         }
 
@@ -286,6 +300,7 @@ export const useProStatus = (): ProStatusInfo => {
           statusBannerDismissed,
           welcomeBannerDismissed,
         });
+        setIsLoading(false);
         return;
       }
 
@@ -306,12 +321,15 @@ export const useProStatus = (): ProStatusInfo => {
           statusBannerDismissed,
           welcomeBannerDismissed,
         });
+        setIsLoading(false);
         return;
       }
 
       if (row.status === "inactive") {
-        const looksLikeFailedPayment =
-          !isAdminGrant && paidPlan && !storeIsPro;
+        // paidPlan + not-yet-active reads as a payment that never
+        // confirmed. This no longer checks storeIsPro (which could be
+        // stale) — a paid plan sitting at 'inactive' is enough on its own.
+        const looksLikeFailedPayment = !isAdminGrant && paidPlan;
 
         if (looksLikeFailedPayment) {
           setInfo({
@@ -346,11 +364,12 @@ export const useProStatus = (): ProStatusInfo => {
             welcomeBannerDismissed,
           });
         }
+        setIsLoading(false);
         return;
       }
 
       setInfo({
-        isActive: storeIsPro,
+        isActive: false,
         status: "none",
         message: "",
         shortMessage: "",
@@ -363,6 +382,7 @@ export const useProStatus = (): ProStatusInfo => {
         statusBannerDismissed,
         welcomeBannerDismissed,
       });
+      setIsLoading(false);
     };
 
     check();
@@ -370,11 +390,14 @@ export const useProStatus = (): ProStatusInfo => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, isOwner]);
+  }, [userId, isOwner, reloadKey]);
 
-  // FIX: dismiss writes remain no-ops for the owner (proRowId is null in
-  // OWNER_ACTIVE_STATE, and dismissed flags are already hardcoded true),
-  // so these functions simply won't fire a Supabase write for that case.
+  const refresh = useCallback(async () => {
+    setReloadKey((k) => k + 1);
+  }, []);
+
+  // Dismiss writes remain no-ops for the owner (proRowId is null in
+  // OWNER_ACTIVE_STATE, and dismissed flags are already hardcoded true).
   const dismissStatusBanner = async () => {
     const rowId = info.proRowId;
     if (!rowId || isOwner) return;
@@ -409,5 +432,12 @@ export const useProStatus = (): ProStatusInfo => {
     }
   };
 
-  return { ...info, dismissStatusBanner, dismissWelcomeBanner };
+  return {
+    ...info,
+    isPro: info.isActive,
+    isLoading,
+    refresh,
+    dismissStatusBanner,
+    dismissWelcomeBanner,
+  };
 };

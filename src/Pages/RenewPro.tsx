@@ -1,7 +1,7 @@
 import React from "react";
-import { Navigate, useLocation, useNavigate } from "react-router";
+import { Navigate, useLocation } from "react-router";
 import PageHelmet from "../components/SEO/PageHelmet";
-import ExamPaywall from "../components/MockExam/ExamPaywall";
+import ProGate from "../components/pro/ProGate";
 
 type RenewalLocationState = {
   fromProStatus?: boolean;
@@ -9,7 +9,6 @@ type RenewalLocationState = {
 
 const RenewPro: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const state = location.state as RenewalLocationState | null;
 
   if (!state?.fromProStatus) {
@@ -23,12 +22,16 @@ const RenewPro: React.FC = () => {
         description="Renew your Schooldra Pro access for continued AI explanations, offline question packs, performance analytics, and mock exam review."
         canonical="https://www.schooldra.com/pro"
       />
-      <ExamPaywall
-        onUpgrade={() => {
-          // Reload the authenticated shell so ProStatusBanner fetches the renewed expiry.
-          window.location.assign("/dashboard");
-        }}
-        onBack={() => navigate("/dashboard", { replace: true })}
+      {/*
+        No children = paywall-only mode: ProGate always shows the payment
+        UI here, regardless of current Pro status — which is exactly what
+        a renewal page needs (a student can top up early even while still
+        Pro). ProGate's own success screen confirms the renewal; it no
+        longer needs a forced page reload to reflect the new expiry.
+      */}
+      <ProGate
+        title="Renew Schooldra Pro"
+        description="Add another 30 days on top of whatever you already have left — nothing is lost."
       />
     </>
   );

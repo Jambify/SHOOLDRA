@@ -27,7 +27,7 @@ import {
   fetchAllQuestionsForBrowse,
   fetchTopicsBySubject,
 } from "../Services/questionService";
-import ProGate from "../components/PastQuestions/ProGate";
+import ProGate from "../components/pro/ProGate.tsx";
 import OfflinePackCard from "../components/PastQuestions/OfflinePackCard";
 import { OFFLINE_PACKS } from "../Data/offlinePacks";
 import SectionError from "../components/ui/SectionError";
