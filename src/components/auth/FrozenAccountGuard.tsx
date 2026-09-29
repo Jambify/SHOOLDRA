@@ -17,7 +17,7 @@ const FrozenAccountGuard: React.FC<{ children: React.ReactNode }> = ({ children 
       // Sign out after showing message
       const timer = setTimeout(() => {
         signOut();
-      }, 3000);
+      }, 10000);
       return () => clearTimeout(timer);
     }
   }, [isFrozen, isAuthenticated, signOut]);
@@ -33,10 +33,10 @@ const FrozenAccountGuard: React.FC<{ children: React.ReactNode }> = ({ children 
           </div>
           <h2 className="text-2xl font-bold text-textMain mb-2">Account Frozen</h2>
           <p className="text-textDim mb-6">
-            Your account has been temporarily frozen. Please contact support for assistance.
+            Your account has been temporarily frozen. Please contact support@schooldra.com for assistance.
           </p>
           <div className="text-xs text-textDim animate-pulse">
-            Signing you out in 3 seconds...
+            Signing you out in 10 seconds...
           </div>
         </div>
       </div>
