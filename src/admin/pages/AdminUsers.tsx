@@ -13,7 +13,21 @@
  * this UI check is just so a non-owner admin isn't met with a confusing
  * Postgres error after clicking.
  *
- * FIX (this pass): two bugs in UserHistoryPanel —
+ * FIX (this pass): desktop table layout.
+ *   The Actions column had no fixed width and only appeared on
+ *   `group-hover` (opacity-0 -> opacity-100). Since hidden-but-present
+ *   content still reserves layout space, and the other columns used
+ *   `max-w-*` (which doesn't force shrinking, only caps growth), the
+ *   table's total width regularly exceeded the visible viewport before
+ *   the container's overflow-x-auto was obviously scrollable — so admins
+ *   had to scroll right AND hover to find the buttons. Fixed by:
+ *     1. table-fixed with explicit per-column widths, so total width is
+ *        predictable regardless of name/email length.
+ *     2. Actions column is now sticky to the right edge with a solid
+ *        background, and always visible (no opacity-0 hover gate) —
+ *        so the three action buttons never require scrolling or hovering.
+ *
+ * FIX (previous pass): two bugs in UserHistoryPanel —
  *   1. quiz_sessions also receives one row per subject from mock exams
  *      (see MockExam.tsx's handleFinishExam -> addQuizResult("mock", ...)),
  *      tagged mode: "mock". Those are bookkeeping writes for
@@ -1193,9 +1207,24 @@ const AdminUsers: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Desktop table */}
+            {/*
+              Desktop table — table-fixed with explicit column widths so
+              total width is predictable, and a sticky right-hand Actions
+              column that's always visible (no hover-to-reveal, no
+              scrolling required to find it). The table itself can still
+              scroll horizontally on narrower desktop windows; Actions
+              stays pinned to the visible right edge while it does.
+            */}
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full text-sm">
+              <table className="w-full table-fixed text-sm">
+                <colgroup>
+                  <col className="w-[26%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[10%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[12%]" />
+                </colgroup>
                 <thead>
                   <tr className="border-borderMuted bg-bgSurface/50 border-b">
                     {[
@@ -1205,10 +1234,14 @@ const AdminUsers: React.FC = () => {
                       "Score",
                       "Status",
                       "Actions",
-                    ].map((h) => (
+                    ].map((h, i) => (
                       <th
                         key={h}
-                        className="text-textDim px-4 py-3 text-left text-[10px] font-bold tracking-widest uppercase first:pl-5 last:pr-5"
+                        className={cn(
+                          "text-textDim px-4 py-3 text-left text-[10px] font-bold tracking-widest uppercase first:pl-5",
+                          i === 5 &&
+                            "bg-bgSurface/50 sticky right-0 pr-5 text-right",
+                        )}
                       >
                         {h}
                       </th>
@@ -1217,10 +1250,7 @@ const AdminUsers: React.FC = () => {
                 </thead>
                 <tbody className="divide-borderMuted divide-y">
                   {paginated.map((u) => (
-                    <tr
-                      key={u.id}
-                      className="hover:bg-bgSurface/40 group transition-colors"
-                    >
+                    <tr key={u.id} className="hover:bg-bgSurface/40 group">
                       {/* User */}
                       <td className="px-4 py-3 pl-5">
                         <button
@@ -1232,27 +1262,27 @@ const AdminUsers: React.FC = () => {
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1">
-                              <p className="text-textMain hover:text-brand-light max-w-40 truncate font-medium transition-colors">
+                              <p className="text-textMain hover:text-brand-light truncate font-medium transition-colors">
                                 {u.name || "—"}
                               </p>
                               {u.is_owner && (
                                 <Crown className="text-warn h-3 w-3 shrink-0" />
                               )}
                             </div>
-                            <p className="text-textDim max-w-40 truncate text-[11px]">
+                            <p className="text-textDim truncate text-[11px]">
                               {u.email}
                             </p>
                           </div>
                         </button>
                       </td>
                       {/* University */}
-                      <td className="text-textMuted max-w-35 px-4 py-3">
+                      <td className="text-textMuted px-4 py-3">
                         <span className="block truncate">
                           {u.university || "—"}
                         </span>
                       </td>
                       {/* Subjects */}
-                      <td className="text-textDim max-w-40 px-4 py-3">
+                      <td className="text-textDim px-4 py-3">
                         <span className="block truncate text-xs">
                           {u.subject_combo || "—"}
                         </span>
@@ -1284,9 +1314,16 @@ const AdminUsers: React.FC = () => {
                           )}
                         </div>
                       </td>
-                      {/* Actions */}
-                      <td className="px-4 py-3 pr-5">
-                        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      {/*
+                        Actions — sticky to the right edge, solid
+                        background so row content doesn't show through
+                        while scrolled, always visible (no opacity-0
+                        hover gate). group-hover keeps a subtle emphasis
+                        without hiding the buttons for non-hover input
+                        (touch trackpads, keyboard nav).
+                      */}
+                      <td className="bg-bgCard group-hover:bg-bgSurface/40 sticky right-0 px-4 py-3 pr-5 transition-colors">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleAction("pro", u)}
                             disabled={u.is_owner}

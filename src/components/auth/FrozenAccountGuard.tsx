@@ -1,9 +1,9 @@
-
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUserStore } from '../../Store/useUserStore';
 
 const FrozenAccountGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isFrozen, signOut, syncProfile, isAuthenticated } = useUserStore();
+  const [countdown, setCountdown] = useState<number>(10);
 
   useEffect(() => {
     // Re-sync profile on mount to check for frozen status
@@ -13,13 +13,24 @@ const FrozenAccountGuard: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [isAuthenticated, syncProfile]);
 
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+
     if (isFrozen && isAuthenticated) {
-      // Sign out after showing message
-      const timer = setTimeout(() => {
-        signOut();
-      }, 10000);
-      return () => clearTimeout(timer);
+      setCountdown(10);
+
+      interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            signOut();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     }
+
+    return () => clearInterval(interval);
   }, [isFrozen, isAuthenticated, signOut]);
 
   if (isFrozen) {
@@ -36,7 +47,7 @@ const FrozenAccountGuard: React.FC<{ children: React.ReactNode }> = ({ children 
             Your account has been temporarily frozen. Please contact support@schooldra.com for assistance.
           </p>
           <div className="text-xs text-textDim animate-pulse">
-            Signing you out in 10 seconds...
+            Signing you out in {countdown} second{countdown !== 1 ? 's' : ''}...
           </div>
         </div>
       </div>
