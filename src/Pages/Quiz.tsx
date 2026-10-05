@@ -198,6 +198,7 @@ const Quiz: React.FC = () => {
         />
         <LoadingScreen
           message="Preparing your quiz"
+          variant="quiz"
           submessage={`Fetching ${selectedSubject} questions for your practice session...`}
           estimatedTime={2}
           showSlowNetworkWarning={showSlowNetworkWarning}

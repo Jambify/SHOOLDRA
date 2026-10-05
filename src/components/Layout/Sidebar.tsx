@@ -5,6 +5,7 @@ import { useUserStore } from "../../Store/useUserStore";
 import { MessageSquare, Trophy, Sparkles, ArrowRight } from "lucide-react";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
 import ThemeToggle from "../ui/ThemeToggle";
+import { routePrefetchProps } from "../../routes/lazyPages";
 interface NavItem {
   label: string;
   path: string;
@@ -254,6 +255,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               to="/settings"
               state={{ activeTab: "help" }}
               onClick={onClose}
+              {...routePrefetchProps("/settings")}
               className="text-textMuted hover:text-textMain hover:bg-bgSurface rounded-brand mb-0.5 flex items-center gap-2.5 px-3 py-2 text-sm transition-colors"
             >
               <svg
@@ -278,6 +280,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <NavLink
                 to="/pro"
                 onClick={onClose}
+                {...routePrefetchProps("/pro")}
                 className="from-brand/10 to-brand/5 border-brand/20 text-brand-light hover:border-brand/40 group flex flex-col gap-2 rounded-2xl border bg-linear-to-br p-3.5 shadow-sm transition-all"
               >
                 <div className="flex items-center gap-2">
@@ -319,6 +322,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               navigate("/settings");
               onClose();
             }}
+            onMouseEnter={routePrefetchProps("/settings").onMouseEnter}
+            onFocus={routePrefetchProps("/settings").onFocus}
+            onTouchStart={routePrefetchProps("/settings").onTouchStart}
             className="rounded-brand hover:bg-bgSurface flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors"
           >
             <div className="bg-brand font-display relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white">
@@ -345,7 +351,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               className="text-textDim shrink-0"
             >
               <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
           </button>
           {/* Theme Toggle */}
@@ -379,6 +385,7 @@ const NavSection: React.FC<{
         to={item.path}
         end={item.path === "/"}
         onClick={onNavigate}
+        {...routePrefetchProps(item.path)}
         className={({ isActive }) =>
           cn(
             "rounded-brand mb-0.5 flex items-center gap-2.5 px-3 py-2 text-sm transition-all duration-200 ease-out",

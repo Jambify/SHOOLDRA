@@ -113,6 +113,31 @@ interface FormData {
 
 const TOTAL_STEPS = 3;
 
+// ── Left-panel copy, keyed to the current step ─────────────────────────────
+// Kept separate from step content so the panel can react to what the
+// student has actually chosen (subject combo, target score) rather than
+// showing the same static blurb throughout.
+const STEP_VISUALS: Record<
+  number,
+  { eyebrow: string; headline: string; body: string }
+> = {
+  1: {
+    eyebrow: "Step 1 of 3",
+    headline: "Every strong JAMB score starts with a plan.",
+    body: "Tell us who you are and where you're headed — we'll build the rest of your prep around it.",
+  },
+  2: {
+    eyebrow: "Step 2 of 3",
+    headline: "Your subjects, your pace.",
+    body: "Pick a combination or build your own. Everything after this — quizzes, mocks, past questions — follows what you choose here.",
+  },
+  3: {
+    eyebrow: "Step 3 of 3",
+    headline: "Set the bar. We'll help you clear it.",
+    body: "A target keeps your practice honest. You can always raise it later.",
+  },
+};
+
 const Onboarding: React.FC = () => {
   console.log("🔵 Onboarding component mounted");
   const navigate = useNavigate();
@@ -124,6 +149,7 @@ const Onboarding: React.FC = () => {
     syncProfile,
     signOut,
     name: userName,
+    _profileReady,
   } = useUserStore();
 
   const [step, setStep] = useState(1);
@@ -348,10 +374,20 @@ const Onboarding: React.FC = () => {
     }
   };
 
-  // Show loading state
-  if (isLoading || isCheckingAuth || isCompleting) {
+  // Show loading state.
+  // isLoading flips true/false on EVERY syncProfile() call, including a
+  // silent background re-check that runs when the tab regains focus after
+  // being backgrounded (Supabase re-validates the session). Without the
+  // !_profileReady guard, that brief blip re-triggers this full-page
+  // takeover on an already-authenticated, mid-onboarding user — the
+  // "flashes then comes back" behavior. _profileReady becomes true the
+  // first time the profile has loaded and stays true until sign-out, so
+  // it's the correct signal for "we already know who this user is": only
+  // block the whole page on isLoading before that has ever happened.
+  if ((isLoading && !_profileReady) || isCheckingAuth || isCompleting) {
     return (
       <LoadingScreen
+      variant="onboarding"
         message={
           isCompleting ? "Completing your setup" : "Loading your profile"
         }
@@ -363,6 +399,13 @@ const Onboarding: React.FC = () => {
     );
   }
 
+  // The target-score color, once picked, tints the left panel's accent on
+  // step 3 — a small echo of the choice the student just made, rather than
+  // a fixed brand color regardless of what's on screen.
+  const activeTargetColor =
+    TARGET_SCORES.find((t) => t.range === form.targetScore)?.color ?? null;
+  const visual = STEP_VISUALS[step];
+
   return (
     <>
       <PageHelmet
@@ -373,314 +416,422 @@ const Onboarding: React.FC = () => {
         <meta name="robots" content="noindex, nofollow" />
       </PageHelmet>
 
-      <div className="bg-bgMain text-textMain flex min-h-screen flex-col items-center justify-center p-4">
-        {/* Brand Header */}
-        <div className="mb-10 flex items-center gap-3">
-          <img
-            src={schooldraLogo}
-            alt="Schooldra"
-            className="flex h-8 w-8 items-center justify-center lg:h-10 lg:w-10"
+      <div className="bg-bgMain text-textMain flex min-h-screen flex-col lg:flex-row">
+        {/*
+          Desktop-only left panel (lg and up). Mobile keeps the original
+          single-column, centered layout untouched below.
+          Built from a ruled-paper motif — echoing an exam answer sheet —
+          rather than a stock photo, and the headline/body change with the
+          step so it tracks the student's progress instead of sitting
+          static the whole flow.
+        */}
+        <aside className="bg-bgCard border-borderMuted relative hidden w-[42%] shrink-0 overflow-hidden border-r lg:flex lg:flex-col lg:justify-between lg:p-12 xl:p-16">
+          {/* Ruled-sheet lines */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(to bottom, currentColor 0, currentColor 1px, transparent 1px, transparent 40px)",
+            }}
           />
-          <span className="font-display item-center text-3xl font-bold tracking-tight">
-            Schooldra
-          </span>
-        </div>
+          {/* Margin rule, like a notebook page */}
+          <div
+            aria-hidden="true"
+            className="bg-brand/20 pointer-events-none absolute top-0 bottom-0 left-16 w-px xl:left-20"
+          />
+          <div
+            aria-hidden="true"
+            className="bg-brand/10 pointer-events-none absolute top-0 right-0 -mt-24 -mr-24 h-72 w-72 rounded-full blur-[90px] transition-colors duration-500"
+            style={
+              activeTargetColor
+                ? { backgroundColor: `${activeTargetColor}1A` }
+                : undefined
+            }
+          />
 
-        <div className="w-full max-w-xl">
-          <StepIndicator current={step} total={TOTAL_STEPS} />
+          <div className="relative z-10 flex items-center gap-3">
+            <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" />
+            <span className="font-display text-xl font-bold tracking-tight">
+              Schooldra
+            </span>
+          </div>
 
-          <div className="bg-bgCard border-borderMuted relative overflow-hidden rounded-4xl border p-6 shadow-2xl md:p-10">
-            {/* Subtle Glow */}
-            <div className="bg-brand/5 pointer-events-none absolute top-0 right-0 -mt-32 -mr-32 h-64 w-64 rounded-full blur-[80px]" />
+          <div className="relative z-10 max-w-md">
+            <p className="text-brand-light mb-4 text-xs font-bold tracking-widest uppercase">
+              {visual.eyebrow}
+            </p>
+            <h1 className="font-display mb-4 text-4xl leading-tight font-black tracking-tight xl:text-5xl">
+              {visual.headline}
+            </h1>
+            <p className="text-textMuted text-base leading-relaxed">
+              {visual.body}
+            </p>
 
-            {/* STEP 1: University */}
-            {step === 1 && (
-              <div className="relative z-10 space-y-8">
-                <header>
-                  <h2 className="text-textMain mb-2 text-3xl font-bold">
-                    Welcome!
-                  </h2>
-                  <p className="text-textMuted">Let's set up your profile.</p>
-                </header>
+            {/* Step 2: a quiet preview of the combo being considered */}
+            {step === 2 && !isCustomSubjectMode && (
+              <div className="mt-8 flex flex-wrap gap-2">
+                {(
+                  SUBJECT_COMBOS.find((c) => c.id === form.subjectCombo)
+                    ?.subjects ?? []
+                ).map((subj) => (
+                  <span
+                    key={subj}
+                    className="bg-bgSurface border-borderMuted text-textMuted rounded-full border px-3 py-1 text-xs font-medium"
+                  >
+                    {subj}
+                  </span>
+                ))}
+              </div>
+            )}
 
-                <Field label="Full Name" error={errors.name}>
-                  <div className="relative">
-                    <ValidatedInput
-                      value={form.name}
-                      onChange={(v) =>
-                        set("name", truncateInput(v, MAX_NAME_LENGTH))
-                      }
-                      placeholder="e.g. Adeola Okafor"
-                      validate={validateName}
-                      maxLength={MAX_NAME_LENGTH}
-                      className={inputCls(!!errors.name)}
-                    />
-                  </div>
-                </Field>
+            {/* Step 3: the chosen target, echoed in its own color */}
+            {step === 3 && form.targetScore && (
+              <div className="mt-8">
+                <p
+                  className="text-3xl font-black"
+                  style={{ color: activeTargetColor ?? undefined }}
+                >
+                  {form.targetScore}
+                </p>
+                <p className="text-textDim text-xs font-bold tracking-widest uppercase">
+                  {
+                    TARGET_SCORES.find((t) => t.range === form.targetScore)
+                      ?.label
+                  }
+                </p>
+              </div>
+            )}
+          </div>
 
-                <Field label="Target University" error={errors.university}>
-                  <div className="relative">
-                    <ValidatedInput
-                      value={uniSearch}
-                      onChange={(v) =>
-                        setUniSearch(truncateInput(v, MAX_UNI_LENGTH))
-                      }
-                      placeholder="Search your school..."
-                      className={inputCls(!!errors.university)}
-                      autoFocus
-                      maxLength={MAX_UNI_LENGTH}
-                    />
-                    {loadingUnis && (
-                      <div className="absolute top-4 right-4">
-                        <div className="border-brand/30 border-t-brand h-5 w-5 animate-spin rounded-full border-2" />
-                      </div>
-                    )}
-                  </div>
+          <div className="relative z-10 flex items-center gap-2">
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "h-1.5 rounded-full transition-all",
+                  i + 1 === step
+                    ? "bg-brand w-8"
+                    : i + 1 < step
+                      ? "bg-brand/40 w-4"
+                      : "bg-borderMuted w-4",
+                )}
+              />
+            ))}
+          </div>
+        </aside>
 
-                  <div className="custom-scrollbar max-h-48 space-y-2 overflow-y-auto pr-2">
-                    {uniError && (
-                      <p className="px-2 text-xs font-medium text-orange-400">
-                        {uniError}
-                      </p>
-                    )}
+        {/* Right / form side — original centered layout, unchanged on mobile */}
+        <div className="flex flex-1 flex-col items-center justify-center p-4 lg:p-10">
+          {/* Brand header stays for mobile; hidden on desktop since the
+              left panel already shows it. */}
+          <div className="mb-10 flex items-center gap-3 lg:hidden">
+            <img
+              src={schooldraLogo}
+              alt="Schooldra"
+              className="flex h-8 w-8 items-center justify-center"
+            />
+            <span className="font-display item-center text-3xl font-bold tracking-tight">
+              Schooldra
+            </span>
+          </div>
 
-                    {uniSearch.length >= 2 &&
-                      uniResults.length === 0 &&
-                      !loadingUnis &&
-                      !useFallback && (
-                        <p className="text-textDim px-2 text-xs">
-                          No universities found. Try a different search or type
-                          the full name.
+          <div className="w-full max-w-xl">
+            <StepIndicator current={step} total={TOTAL_STEPS} />
+
+            <div className="bg-bgCard border-borderMuted relative overflow-hidden rounded-4xl border p-6 shadow-2xl md:p-10">
+              {/* Subtle Glow */}
+              <div className="bg-brand/5 pointer-events-none absolute top-0 right-0 -mt-32 -mr-32 h-64 w-64 rounded-full blur-[80px]" />
+
+              {/* STEP 1: University */}
+              {step === 1 && (
+                <div className="relative z-10 space-y-8">
+                  <header>
+                    <h2 className="text-textMain mb-2 text-3xl font-bold">
+                      Welcome!
+                    </h2>
+                    <p className="text-textMuted">Let's set up your profile.</p>
+                  </header>
+
+                  <Field label="Full Name" error={errors.name}>
+                    <div className="relative">
+                      <ValidatedInput
+                        value={form.name}
+                        onChange={(v) =>
+                          set("name", truncateInput(v, MAX_NAME_LENGTH))
+                        }
+                        placeholder="e.g. Adeola Okafor"
+                        validate={validateName}
+                        maxLength={MAX_NAME_LENGTH}
+                        className={inputCls(!!errors.name)}
+                      />
+                    </div>
+                  </Field>
+
+                  <Field label="Target University" error={errors.university}>
+                    <div className="relative">
+                      <ValidatedInput
+                        value={uniSearch}
+                        onChange={(v) =>
+                          setUniSearch(truncateInput(v, MAX_UNI_LENGTH))
+                        }
+                        placeholder="Search your school..."
+                        className={inputCls(!!errors.university)}
+                        autoFocus
+                        maxLength={MAX_UNI_LENGTH}
+                      />
+                      {loadingUnis && (
+                        <div className="absolute top-4 right-4">
+                          <div className="border-brand/30 border-t-brand h-5 w-5 animate-spin rounded-full border-2" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="custom-scrollbar max-h-48 space-y-2 overflow-y-auto pr-2">
+                      {uniError && (
+                        <p className="px-2 text-xs font-medium text-orange-400">
+                          {uniError}
                         </p>
                       )}
 
-                    {uniResults.map((uni) => (
-                      <button
-                        key={uni}
-                        onClick={() => {
-                          set("university", uni);
-                          setUniSearch(uni);
-                        }}
-                        className={cn(
-                          "w-full rounded-xl border px-4 py-3 text-left text-sm transition-all",
-                          form.university === uni
-                            ? "bg-brand/10 border-brand text-brand-light"
-                            : "bg-bgSurface border-borderMuted text-textMuted hover:bg-bgDeep hover:text-textMain",
+                      {uniSearch.length >= 2 &&
+                        uniResults.length === 0 &&
+                        !loadingUnis &&
+                        !useFallback && (
+                          <p className="text-textDim px-2 text-xs">
+                            No universities found. Try a different search or
+                            type the full name.
+                          </p>
                         )}
-                      >
-                        {uni}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
 
-                {uniSearch.length >= 2 &&
-                  uniResults.length === 0 &&
-                  !loadingUnis && (
-                    <div className="mt-4 border-t border-white/10 pt-4">
-                      <p className="text-textDim mb-2 text-xs">
-                        Can't find your university?
-                      </p>
-                      <button
-                        onClick={() => {
-                          set("university", uniSearch);
-                        }}
-                        className="border-brand/50 text-brand-light hover:bg-brand/10 w-full rounded-xl border border-dashed px-4 py-3 text-left text-sm transition-all"
-                      >
-                        Use "{uniSearch}" as your university
-                      </button>
+                      {uniResults.map((uni) => (
+                        <button
+                          key={uni}
+                          onClick={() => {
+                            set("university", uni);
+                            setUniSearch(uni);
+                          }}
+                          className={cn(
+                            "w-full rounded-xl border px-4 py-3 text-left text-sm transition-all",
+                            form.university === uni
+                              ? "bg-brand/10 border-brand text-brand-light"
+                              : "bg-bgSurface border-borderMuted text-textMuted hover:bg-bgDeep hover:text-textMain",
+                          )}
+                        >
+                          {uni}
+                        </button>
+                      ))}
+                    </div>
+                  </Field>
+
+                  {uniSearch.length >= 2 &&
+                    uniResults.length === 0 &&
+                    !loadingUnis && (
+                      <div className="mt-4 border-t border-white/10 pt-4">
+                        <p className="text-textDim mb-2 text-xs">
+                          Can't find your university?
+                        </p>
+                        <button
+                          onClick={() => {
+                            set("university", uniSearch);
+                          }}
+                          className="border-brand/50 text-brand-light hover:bg-brand/10 w-full rounded-xl border border-dashed px-4 py-3 text-left text-sm transition-all"
+                        >
+                          Use "{uniSearch}" as your university
+                        </button>
+                      </div>
+                    )}
+
+                  <Field label="Exam Year">
+                    <div className="grid grid-cols-2 gap-3">
+                      {["2027"].map((yr) => (
+                        <button
+                          key={yr}
+                          onClick={() => set("examYear", yr)}
+                          className={cn(
+                            "rounded-xl border py-3 text-sm font-bold transition-all",
+                            form.examYear === yr
+                              ? "bg-brand border-brand shadow-brand/20 text-white shadow-lg"
+                              : "bg-bgSurface border-borderMuted text-textMuted hover:bg-bgDeep hover:text-textMain",
+                          )}
+                        >
+                          JAMB {yr}
+                        </button>
+                      ))}
+                    </div>
+                  </Field>
+                </div>
+              )}
+
+              {/* STEP 2: Subject Combo */}
+              {step === 2 && (
+                <div className="space-y-6">
+                  <header>
+                    <h2 className="text-textMain mb-2 text-3xl font-bold">
+                      Your Path
+                    </h2>
+                    <p className="text-textMuted">
+                      Choose your area of study or create custom.
+                    </p>
+                  </header>
+
+                  {/* Toggle Custom/Predefined */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        setIsCustomSubjectMode(false);
+                      }}
+                      className={cn(
+                        "rounded-xl border py-3 text-sm font-bold transition-all",
+                        !isCustomSubjectMode
+                          ? "bg-brand border-brand shadow-brand/20 text-white"
+                          : "bg-bgSurface border-borderMuted text-textMuted",
+                      )}
+                    >
+                      Predefined
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsCustomSubjectMode(true);
+                        // Initialize custom mode with default custom subjects
+                        if (!Array.isArray(form.subjectCombo)) {
+                          setForm((prev) => ({
+                            ...prev,
+                            subjectCombo: [
+                              "English",
+                              "Mathematics",
+                              "Physics",
+                              "Chemistry",
+                            ],
+                          }));
+                        }
+                      }}
+                      className={cn(
+                        "rounded-xl border py-3 text-sm font-bold transition-all",
+                        isCustomSubjectMode
+                          ? "bg-brand border-brand shadow-brand/20 text-white"
+                          : "bg-bgSurface border-borderMuted text-textMuted",
+                      )}
+                    >
+                      Custom Combo
+                    </button>
+                  </div>
+
+                  {/* Predefined Combos */}
+                  {!isCustomSubjectMode && (
+                    <div className="space-y-3">
+                      {SUBJECT_COMBOS.map((combo) => (
+                        <button
+                          key={combo.id}
+                          onClick={() => set("subjectCombo", combo.id)}
+                          className={cn(
+                            "flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all",
+                            form.subjectCombo === combo.id
+                              ? "bg-brand/10 border-brand shadow-sm"
+                              : "bg-bgSurface border-borderMuted opacity-70 hover:opacity-100",
+                          )}
+                        >
+                          <span className="text-2xl">{combo.icon}</span>
+                          <div>
+                            <p className="text-textMain font-bold">
+                              {combo.label}
+                            </p>
+                            <p className="text-textDim text-xs">
+                              {combo.subjects.join(" + ")}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   )}
 
-                <Field label="Exam Year">
-                  <div className="grid grid-cols-2 gap-3">
-                    {["2027"].map((yr) => (
-                      <button
-                        key={yr}
-                        onClick={() => set("examYear", yr)}
-                        className={cn(
-                          "rounded-xl border py-3 text-sm font-bold transition-all",
-                          form.examYear === yr
-                            ? "bg-brand border-brand shadow-brand/20 text-white shadow-lg"
-                            : "bg-bgSurface border-borderMuted text-textMuted hover:bg-bgDeep hover:text-textMain",
-                        )}
-                      >
-                        JAMB {yr}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
-              </div>
-            )}
-
-            {/* STEP 2: Subject Combo */}
-            {step === 2 && (
-              <div className="space-y-6">
-                <header>
-                  <h2 className="text-textMain mb-2 text-3xl font-bold">
-                    Your Path
-                  </h2>
-                  <p className="text-textMuted">
-                    Choose your area of study or create custom.
-                  </p>
-                </header>
-
-                {/* Toggle Custom/Predefined */}
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => {
-                      setIsCustomSubjectMode(false);
-                    }}
-                    className={cn(
-                      "rounded-xl border py-3 text-sm font-bold transition-all",
-                      !isCustomSubjectMode
-                        ? "bg-brand border-brand shadow-brand/20 text-white"
-                        : "bg-bgSurface border-borderMuted text-textMuted",
-                    )}
-                  >
-                    Predefined
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsCustomSubjectMode(true);
-                      // Initialize custom mode with default custom subjects
-                      if (!Array.isArray(form.subjectCombo)) {
-                        setForm((prev) => ({
-                          ...prev,
-                          subjectCombo: [
-                            "English",
-                            "Mathematics",
-                            "Physics",
-                            "Chemistry",
-                          ],
-                        }));
-                      }
-                    }}
-                    className={cn(
-                      "rounded-xl border py-3 text-sm font-bold transition-all",
-                      isCustomSubjectMode
-                        ? "bg-brand border-brand shadow-brand/20 text-white"
-                        : "bg-bgSurface border-borderMuted text-textMuted",
-                    )}
-                  >
-                    Custom Combo
-                  </button>
+                  {/* Custom Combo Selector */}
+                  {isCustomSubjectMode && (
+                    <div className="space-y-3">
+                      <CustomSubjectSelector
+                        selectedSubjects={
+                          Array.isArray(form.subjectCombo)
+                            ? form.subjectCombo
+                            : ["English", "Mathematics", "Physics", "Chemistry"]
+                        }
+                        onChange={(subjects) => {
+                          setForm((prev) => ({
+                            ...prev,
+                            subjectCombo: subjects,
+                          }));
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
+              )}
 
-                {/* Predefined Combos */}
-                {!isCustomSubjectMode && (
+              {/* STEP 3: Target Score */}
+              {step === 3 && (
+                <div className="space-y-6">
+                  <header>
+                    <h2 className="text-textMain mb-2 text-3xl font-bold">
+                      Aim High
+                    </h2>
+                    <p className="text-textMuted">
+                      Set a target to keep you motivated.
+                    </p>
+                  </header>
                   <div className="space-y-3">
-                    {SUBJECT_COMBOS.map((combo) => (
+                    {TARGET_SCORES.map((t) => (
                       <button
-                        key={combo.id}
-                        onClick={() => set("subjectCombo", combo.id)}
+                        key={t.range}
+                        onClick={() => set("targetScore", t.range)}
                         className={cn(
-                          "flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all",
-                          form.subjectCombo === combo.id
-                            ? "bg-brand/10 border-brand shadow-sm"
-                            : "bg-bgSurface border-borderMuted opacity-70 hover:opacity-100",
+                          "flex w-full items-center justify-between rounded-2xl border p-5 transition-all",
+                          form.targetScore === t.range
+                            ? "bg-brand/10 border-brand/30"
+                            : "bg-bgSurface border-borderMuted",
                         )}
                       >
-                        <span className="text-2xl">{combo.icon}</span>
                         <div>
-                          <p className="text-textMain font-bold">
-                            {combo.label}
+                          <p
+                            className="text-xl font-black"
+                            style={{ color: t.color }}
+                          >
+                            {t.range}
                           </p>
-                          <p className="text-textDim text-xs">
-                            {combo.subjects.join(" + ")}
+                          <p className="text-textMain text-xs font-bold">
+                            {t.label}
                           </p>
                         </div>
+                        <p className="text-textDim max-w-25 text-right text-[10px]">
+                          {t.sub}
+                        </p>
                       </button>
                     ))}
                   </div>
-                )}
-
-                {/* Custom Combo Selector */}
-                {isCustomSubjectMode && (
-                  <div className="space-y-3">
-                    <CustomSubjectSelector
-                      selectedSubjects={
-                        Array.isArray(form.subjectCombo)
-                          ? form.subjectCombo
-                          : ["English", "Mathematics", "Physics", "Chemistry"]
-                      }
-                      onChange={(subjects) => {
-                        setForm((prev) => ({
-                          ...prev,
-                          subjectCombo: subjects,
-                        }));
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* STEP 3: Target Score */}
-            {step === 3 && (
-              <div className="space-y-6">
-                <header>
-                  <h2 className="text-textMain mb-2 text-3xl font-bold">
-                    Aim High
-                  </h2>
-                  <p className="text-textMuted">
-                    Set a target to keep you motivated.
-                  </p>
-                </header>
-                <div className="space-y-3">
-                  {TARGET_SCORES.map((t) => (
-                    <button
-                      key={t.range}
-                      onClick={() => set("targetScore", t.range)}
-                      className={cn(
-                        "flex w-full items-center justify-between rounded-2xl border p-5 transition-all",
-                        form.targetScore === t.range
-                          ? "bg-brand/10 border-brand/30"
-                          : "bg-bgSurface border-borderMuted",
-                      )}
-                    >
-                      <div>
-                        <p
-                          className="text-xl font-black"
-                          style={{ color: t.color }}
-                        >
-                          {t.range}
-                        </p>
-                        <p className="text-textMain text-xs font-bold">
-                          {t.label}
-                        </p>
-                      </div>
-                      <p className="text-textDim max-w-25 text-right text-[10px]">
-                        {t.sub}
-                      </p>
-                    </button>
-                  ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            <div className="mt-10 flex flex-col gap-4">
-              <div className="flex gap-4">
-                {step > 1 && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => setStep((s) => s - 1)}
-                    className="bg-bgSurface border-borderMuted"
-                  >
-                    Back
+              <div className="mt-10 flex flex-col gap-4">
+                <div className="flex gap-4">
+                  {step > 1 && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => setStep((s) => s - 1)}
+                      className="bg-bgSurface border-borderMuted"
+                    >
+                      Back
+                    </Button>
+                  )}
+                  <Button variant="primary" fullWidth onClick={handleNext}>
+                    {step === TOTAL_STEPS ? "Ready to Win" : "Next Step"}
                   </Button>
-                )}
-                <Button variant="primary" fullWidth onClick={handleNext}>
-                  {step === TOTAL_STEPS ? "Ready to Win" : "Next Step"}
-                </Button>
-              </div>
+                </div>
 
-              <button
-                onClick={() => setShowCancelModal(true)}
-                className="text-textDim hover:text-danger py-2 text-xs transition-colors"
-              >
-                Cancel & Back to Sign Up
-              </button>
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="text-textDim hover:text-danger py-2 text-xs transition-colors"
+                >
+                  Cancel & Back to Sign Up
+                </button>
+              </div>
             </div>
           </div>
         </div>

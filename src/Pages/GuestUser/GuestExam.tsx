@@ -340,6 +340,7 @@ const GuestMockExam: React.FC = () => {
         />
         <LoadingScreen
           message="Preparing Mock Exam"
+          variant="mock-exam"
           submessage="Gathering questions for all selected subjects..."
           estimatedTime={4}
         />

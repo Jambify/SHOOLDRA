@@ -34,6 +34,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../lib/utils/utils";
 import ThemeToggle from "../ui/ThemeToggle";
 import type { ProStatusInfo } from "../../hooks/useProStatus";
+import {
+  routePrefetchProps,
+  preloadCommonRoutes,
+} from "../../routes/lazyPages";
 
 interface LayoutProps {
   children: ReactNode;
@@ -75,6 +79,7 @@ const NavItem = ({ label, badge, icon, path }: any) => {
     <NavLink
       to={path}
       end
+      {...routePrefetchProps(path)}
       className={({ isActive }) =>
         cn(
           "rounded-brand group mb-0.5 flex cursor-pointer items-center gap-3 p-2.5 text-[13.5px] transition-all duration-200 ease-out",
@@ -472,6 +477,13 @@ const AppLayout: React.FC<LayoutProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  // AppLayout only renders for signed-in student pages, so this is the
+  // right place to warm the most-used route chunks while the browser is
+  // idle. It runs once per session and is skipped on Save-Data / 2G.
+  React.useEffect(() => {
+    preloadCommonRoutes();
+  }, []);
+
   return (
     <div
       className="bg-bgMain text-textMain selection:bg-brand/30 min-h-screen font-sans"
@@ -635,6 +647,7 @@ const AppLayout: React.FC<LayoutProps> = ({
               {!isPro ? (
                 <Link
                   to="/pro"
+                  {...routePrefetchProps("/pro")}
                   className="from-brand/10 to-brand/5 border-brand/20 text-brand-light hover:border-brand/40 group flex flex-col gap-2 rounded-2xl border bg-linear-to-br p-3.5 transition-all"
                 >
                   <div className="flex items-center gap-2">
@@ -669,6 +682,7 @@ const AppLayout: React.FC<LayoutProps> = ({
           <div className="border-borderMuted border-t p-4">
             <Link
               to="/settings"
+              {...routePrefetchProps("/settings")}
               className="hover:bg-bgCard rounded-brand flex cursor-pointer items-center gap-3 p-2 transition-colors"
             >
               <div className="bg-brand font-display relative flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
@@ -799,6 +813,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             <NavLink
               to="/subjects"
               end
+              {...routePrefetchProps("/subjects")}
               className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ease-out active:scale-90"
               aria-label="Subjects"
             >
@@ -834,6 +849,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             <div className="relative flex h-full flex-1 justify-center">
               <Link
                 to="/quiz"
+                {...routePrefetchProps("/quiz")}
                 className="group absolute -top-6 flex flex-col items-center gap-1"
                 aria-label="Quiz"
               >
@@ -849,6 +865,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             <NavLink
               to="/performance"
               end
+              {...routePrefetchProps("/performance")}
               className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ease-out active:scale-90"
               aria-label="Performance"
             >
@@ -883,6 +900,7 @@ const AppLayout: React.FC<LayoutProps> = ({
 
             <NavLink
               to="/settings"
+              {...routePrefetchProps("/settings")}
               className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ease-out active:scale-90"
               aria-label="Profile"
             >

@@ -1,6 +1,6 @@
 // src/components/PastQuestions/QuestionAIHelper.tsx
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Sparkles, ChevronDown, Loader2 } from "lucide-react";
 import { useAIChat } from "../../hooks/useAIChat";
 import type { Question } from "../../Types";
@@ -29,6 +29,16 @@ const STARTERS = [
   },
 ];
 
+// Small deterministic string hash (djb2) — just needs to change whenever the
+// option order/answer changes, not to be cryptographically anything.
+function hashString(str: string): string {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 const QuestionAIHelper: React.FC<QuestionAIHelperProps> = ({ question }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -46,9 +56,21 @@ IMPORTANT: The option order above has been randomized specifically for this stud
 
 Be concise, encouraging, and specific to this question. Under 150 words unless asked for more detail.`;
 
+  // FIX: storageKey used to be keyed only by question.id, so a fresh option
+  // shuffle for the SAME question (e.g. after a refresh) would silently
+  // reload and display the PREVIOUS conversation from localStorage — one
+  // that was talking about the old option lettering. Folding a hash of the
+  // current options + answer index into the key means a re-shuffled
+  // instance of this question gets its own clean conversation instead of
+  // inheriting a now-stale one.
+  const storageKey = useMemo(() => {
+    const signature = `${question.options.join("|")}::${question.answer}`;
+    return `schooldra-pq-helper-${question.id}-${hashString(signature)}`;
+  }, [question.id, question.options, question.answer]);
+
   const { messages, isLoading, sendMessage, isAtLimit } = useAIChat({
     systemPrompt,
-    storageKey: `schooldra-pq-helper-${question.id}`,
+    storageKey,
   });
 
   const handleSend = (text: string) => {
@@ -99,18 +121,24 @@ Be concise, encouraging, and specific to this question. Under 150 words unless a
               {msg.content ? (
                 <ExplanationText text={msg.content} />
               ) : msg.isStreaming ? (
-                "…"
+                // FIX: this used to render a static "…" while the AI
+                // placeholder had no content yet — the exact moment the
+                // user is waiting on a response. isLoading's own spinner
+                // block below never actually fires for that window (the
+                // placeholder is added in the same synchronous batch as
+                // isLoading flips true, so it's always the last message
+                // and role === "ai" by the time we render), so this was
+                // the only visible feedback during the wait — and it
+                // didn't animate. Replaced with a real spinner.
+                <span className="text-textDim inline-flex items-center gap-1.5">
+                  <Loader2 size={12} className="animate-spin" />
+                  Thinking…
+                </span>
               ) : (
                 ""
               )}
             </div>
           ))}
-          {isLoading && messages[messages.length - 1]?.role !== "ai" && (
-            <div className="text-textDim flex items-center gap-2 text-xs">
-              <Loader2 size={14} className="animate-spin" />
-              Thinking…
-            </div>
-          )}
 
           <div className="flex items-center gap-2">
             <ValidatedInput

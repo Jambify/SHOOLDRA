@@ -151,6 +151,7 @@ const GuestQuiz: React.FC = () => {
     return (
       <LoadingScreen
         message="Preparing your quiz"
+        variant="quiz"
         submessage={
           subject === ""
             ? "Creating a random mix for you..."
