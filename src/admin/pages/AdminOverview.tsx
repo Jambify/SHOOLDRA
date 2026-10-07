@@ -17,6 +17,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import { Link } from "react-router";
 import { supabase } from "../../lib/supabase";
+import { getSubjectColor } from "../../lib/subjectMeta";
 import {
   Users,
   Crown,
@@ -86,22 +87,6 @@ const SUBJECTS = [
   "Geography",
   "History",
 ];
-
-const SUBJECT_COLORS: Record<string, string> = {
-  English: "#7B5FFF",
-  Mathematics: "#00C896",
-  Physics: "#FFB020",
-  Chemistry: "#FF4D6D",
-  Biology: "#00C896",
-  Economics: "#7B5FFF",
-  Government: "#FFB020",
-  Literature: "#7B5FFF",
-  History: "#FF4D6D",
-  Geography: "#00C896",
-  CRS: "#7B5FFF",
-  IRS: "#00C896",
-  Commerce: "#FFB020",
-};
 
 const Card: React.FC<{
   label: string;
@@ -312,7 +297,7 @@ const AdminOverview: React.FC = () => {
           ))}
         </div>
       ) : !stats ? (
-         <SectionError
+        <SectionError
           message={error || "Failed to load admin overview. Please try again."}
           onRetry={handleManualRefresh}
           isRetrying={isManualRefreshing}
@@ -454,7 +439,7 @@ const AdminOverview: React.FC = () => {
             </div>
             <div className="space-y-3">
               {subjectCounts.map(({ subject, count }) => {
-                const color = SUBJECT_COLORS[subject] || "#7B5FFF";
+                const color = getSubjectColor(subject);
                 const widthPct = Math.max(
                   2,
                   Math.round((count / maxSubjectCount) * 100),

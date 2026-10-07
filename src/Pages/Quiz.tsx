@@ -58,6 +58,20 @@ const QUIZ_SUBJECTS = [
   };
 });
 
+/**
+ * URLSearchParams.get() already decodes, so values are usually plain text
+ * by the time we get them. A plain decodeURIComponent on text that contains
+ * a literal "%" (e.g. a topic like "Percentages (%)") throws a URIError and
+ * crashes the page, so fall back to the raw value instead.
+ */
+const safeDecode = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
 const Quiz: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -95,10 +109,20 @@ const Quiz: React.FC = () => {
     const params = new URLSearchParams(location.search);
     const subjectParam = params.get("subject");
     const topicParam = params.get("topic");
+    const modeParam = params.get("mode");
+
+    // Deep links (e.g. the /sessions cards) can preselect the quiz mode
+    if (
+      modeParam === "quick" ||
+      modeParam === "standard" ||
+      modeParam === "marathon"
+    ) {
+      setSelectedMode(modeParam);
+    }
 
     if (subjectParam) {
-      const decodedSubject = decodeURIComponent(subjectParam);
-      const decodedTopic = topicParam ? decodeURIComponent(topicParam) : "All";
+      const decodedSubject = safeDecode(subjectParam);
+      const decodedTopic = topicParam ? safeDecode(topicParam) : "All";
 
       // First reset any existing quiz state to clear the timer
       reset();
@@ -131,6 +155,12 @@ const Quiz: React.FC = () => {
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showSlowNetworkWarning, setShowSlowNetworkWarning] = useState(false);
+
+  // Identifies the current "start quiz" attempt. Cancelling (or starting
+  // again) bumps it, which turns every later step of an older attempt into
+  // a no-op, so a cancelled load can never start a quiz behind the
+  // student's back.
+  const loadRunRef = React.useRef(0);
 
   // ── Reorder Subjects based on selection ───────────────────
   const sortedQuizSubjects = useMemo(() => {
@@ -171,14 +201,19 @@ const Quiz: React.FC = () => {
       setSelectedTopic("All");
     }
 
+    let scrollTimer: ReturnType<typeof setTimeout> | undefined;
     if (selectedSubject && selectedSubject !== "All") {
-      setTimeout(() => {
+      scrollTimer = setTimeout(() => {
         topicsRef.current?.scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
       }, 100);
     }
+
+    return () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+    };
   }, [selectedSubject, setSelectedTopic, location.search]);
 
   useEffect(
@@ -203,7 +238,10 @@ const Quiz: React.FC = () => {
           estimatedTime={2}
           showSlowNetworkWarning={showSlowNetworkWarning}
           onCancel={() => {
+            // Invalidate the running attempt so it can't start the quiz later
+            loadRunRef.current += 1;
             setIsLoadingQuestions(false);
+            setShowSlowNetworkWarning(false);
           }}
         />
       </>
@@ -213,13 +251,17 @@ const Quiz: React.FC = () => {
   const handleStart = async () => {
     if (selectedSubject === "All") return;
 
+    loadRunRef.current += 1;
+    const runId = loadRunRef.current;
+    const isCurrent = () => runId === loadRunRef.current;
+
     setShowExitModal(false);
     setLoadError(null);
     setIsLoadingQuestions(true);
     setShowSlowNetworkWarning(false);
 
     const slowNetworkTimer = setTimeout(() => {
-      setShowSlowNetworkWarning(true);
+      if (isCurrent()) setShowSlowNetworkWarning(true);
     }, 5000);
 
     const isMarathon = selectedMode === "marathon";
@@ -227,9 +269,10 @@ const Quiz: React.FC = () => {
     const adjustedDifficulty = isMarathon ? "All" : selectedDifficulty;
     const targetCount = isMarathon ? 100 : selectedMode === "quick" ? 10 : 20;
 
-    await new Promise((r) => setTimeout(r, 100));
-
     try {
+      await new Promise((r) => setTimeout(r, 100));
+      if (!isCurrent()) return;
+
       const isOnline = navigator.onLine;
       const offlineStore = useOfflineStore.getState();
 
@@ -265,6 +308,7 @@ const Quiz: React.FC = () => {
         const recentIds = !isMarathon
           ? await getRecentlySeenQuestionIds(selectedSubject, adjustedTopic) // NEW: pass topic
           : [];
+        if (!isCurrent()) return;
 
         try {
           if (adjustedTopic === "All") {
@@ -312,6 +356,7 @@ const Quiz: React.FC = () => {
             "CONNECTION_ERROR: Failed to fetch questions. Please check your internet connection and try again.",
           );
         }
+        if (!isCurrent()) return;
       }
 
       // Final check: if still empty or not enough, try one last broad sweep
@@ -324,6 +369,7 @@ const Quiz: React.FC = () => {
           targetCount * 2,
           "All",
         );
+        if (!isCurrent()) return;
 
         const existingIds = new Set(qs.map((q) => q.id));
         const uniqueLastResort = lastResort.filter(
@@ -342,6 +388,9 @@ const Quiz: React.FC = () => {
         qs = qs.slice(0, targetCount);
       }
 
+      // Cancelled while loading: don't log "seen" questions or start the quiz
+      if (!isCurrent()) return;
+
       // NEW — fire-and-forget: don't await, so logging what was seen
       // never delays the quiz from starting.
       recordSeenQuestions(
@@ -357,14 +406,19 @@ const Quiz: React.FC = () => {
           : 30 * 60;
       loadQuestions(qs, duration);
     } catch (error) {
+      if (!isCurrent()) return; // cancelled: nothing to report
       console.error("Failed to load quiz questions:", error);
       setLoadError(
         error instanceof Error ? error.message : "An unexpected error occurred",
       );
     } finally {
       clearTimeout(slowNetworkTimer);
-      setIsLoadingQuestions(false);
-      setShowSlowNetworkWarning(false);
+      // Only the latest attempt may touch the loading state, otherwise a
+      // cancelled run finishing late would switch off a newer run's loader.
+      if (isCurrent()) {
+        setIsLoadingQuestions(false);
+        setShowSlowNetworkWarning(false);
+      }
     }
   };
 
@@ -404,6 +458,7 @@ const Quiz: React.FC = () => {
     return (
       <AppLayout
         currentPage="quiz"
+        hideBanners
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
@@ -442,9 +497,9 @@ const Quiz: React.FC = () => {
                     height: "6px",
                     background:
                       i < currentIndex
-                        ? "var(--color-success, #00C896)"
+                        ? "var(--color-success)"
                         : i === currentIndex
-                          ? "#7B5FFF"
+                          ? "var(--color-brand)"
                           : "var(--borderMuted)",
                   }}
                 />

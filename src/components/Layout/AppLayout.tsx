@@ -45,6 +45,8 @@ interface LayoutProps {
   isSidebarOpen?: boolean;
   setIsSidebarOpen?: (open: boolean) => void;
   hideSidebar?: boolean;
+  /** Hide the announcement / Pro banners (e.g. during a live quiz or exam). */
+  hideBanners?: boolean;
   className?: string;
   onRefresh?: () => Promise<void> | void;
 }
@@ -337,6 +339,7 @@ const AppLayout: React.FC<LayoutProps> = ({
   isSidebarOpen = false,
   setIsSidebarOpen = () => {},
   hideSidebar = false,
+  hideBanners = false,
   className,
   onRefresh,
 }) => {
@@ -529,11 +532,13 @@ const AppLayout: React.FC<LayoutProps> = ({
         </div>
       </motion.div>
 
-      <div className="lg:pt-5 lg:pl-64">
-        <AnnouncementBanner />
-        <ProWelcomeBanner status={proStatus} />
-        <ProStatusBanner status={proStatus} />
-      </div>
+      {!hideBanners && (
+        <div className="lg:pt-5 lg:pl-64">
+          <AnnouncementBanner />
+          <ProWelcomeBanner status={proStatus} />
+          <ProStatusBanner status={proStatus} />
+        </div>
+      )}
 
       {/* Network Status Toast */}
       <AnimatePresence>
@@ -639,7 +644,11 @@ const AppLayout: React.FC<LayoutProps> = ({
                 Study
               </h2>
               <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
-              <NavItem label="Past Questions" icon="file" path="/past-questions" />
+              <NavItem
+                label="Past Questions"
+                icon="file"
+                path="/past-questions"
+              />
               <NavItem label="Study Groups" icon="users" path="/study-groups" />
             </section>
 
@@ -710,7 +719,10 @@ const AppLayout: React.FC<LayoutProps> = ({
         </aside>
       )}
 
-      <main className={cn("flex-1 pb-28 lg:pb-0", !hideSidebar && "lg:ml-60")}>
+      {/* pb-28 only exists to clear the mobile bottom nav, which is not
+          rendered when hideSidebar is set. Keeping it there made the
+          full-height exam screen scroll by an extra 7rem on phones. */}
+      <main className={cn("flex-1", !hideSidebar && "pb-28 lg:ml-60 lg:pb-0")}>
         {!hideSidebar && (
           <header
             role="banner"

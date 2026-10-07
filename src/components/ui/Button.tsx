@@ -2,13 +2,7 @@ import React from "react";
 import { cn } from "../../lib/utils/utils";
 
 export type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "ghost"
-  | "danger"
-  | "success"
-  | "warn"
-  | "pro";
+  "primary" | "secondary" | "ghost" | "danger" | "success" | "warn" | "pro";
 export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -27,7 +21,7 @@ const VARIANTS: Record<ButtonVariant, string> = {
   primary: [
     "bg-brand text-white",
     "hover:bg-brand-light",
-    "active:bg-[#4A2EE0]",
+    "active:bg-brand-light",
     "shadow-brand hover:shadow-lg hover:shadow-brand/40",
     "focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bgCard",
   ].join(" "),

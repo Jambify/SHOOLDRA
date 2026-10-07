@@ -226,7 +226,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 50% 0%, rgba(91,59,255,0.08) 0%, transparent 70%)",
+              "radial-gradient(circle at 50% 0%, var(--color-brand-dim) 0%, transparent 70%)",
           }}
         />
         <div className="mb-3 flex items-center justify-center">{icon}</div>

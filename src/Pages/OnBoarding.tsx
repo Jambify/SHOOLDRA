@@ -52,24 +52,29 @@ const SUBJECT_COMBOS = [
 ];
 
 const TARGET_SCORES = [
-  { range: "320+", label: "Elite", sub: "Top 1% nationwide", color: "#A855F7" },
+  {
+    range: "320+",
+    label: "Elite",
+    sub: "Top 1% nationwide",
+    color: "var(--color-brand)",
+  },
   {
     range: "280–319",
     label: "Excellent",
     sub: "Competitive for all Unis",
-    color: "#22C55E",
+    color: "var(--color-success)",
   },
   {
     range: "250–279",
     label: "Strong",
     sub: "Target for State/Federal",
-    color: "#EAB308",
+    color: "var(--color-warn)",
   },
   {
     range: "200–249",
     label: "Target",
     sub: "Standard Entry Level",
-    color: "#EF4444",
+    color: "var(--color-danger)",
   },
 ];
 
@@ -387,7 +392,7 @@ const Onboarding: React.FC = () => {
   if ((isLoading && !_profileReady) || isCheckingAuth || isCompleting) {
     return (
       <LoadingScreen
-      variant="onboarding"
+        variant="onboarding"
         message={
           isCompleting ? "Completing your setup" : "Loading your profile"
         }

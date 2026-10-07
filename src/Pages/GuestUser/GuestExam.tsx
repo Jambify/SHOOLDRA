@@ -496,10 +496,10 @@ const GuestMockExam: React.FC = () => {
                             className={cn(
                               "h-full rounded-full transition-all duration-500",
                               subjectPct >= 75
-                                ? "bg-success shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+                                ? "bg-success shadow-success"
                                 : subjectPct >= 45
-                                  ? "bg-brand shadow-[0_0_8px_rgba(123,95,255,0.4)]"
-                                  : "bg-danger shadow-[0_0_8px_rgba(239,68,68,0.4)]",
+                                  ? "bg-brand shadow-brand"
+                                  : "bg-danger shadow-danger",
                             )}
                           />
                         </div>

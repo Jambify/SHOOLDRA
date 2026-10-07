@@ -69,7 +69,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           className="pointer-events-none absolute inset-0 opacity-[0.035]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(123,95,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(123,95,255,1) 1px, transparent 1px)",
+              "linear-gradient(color-mix(in srgb, var(--color-brand) 35%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-brand) 35%, transparent) 1px, transparent 1px)",
             backgroundSize: "40px 40px",
           }}
         />

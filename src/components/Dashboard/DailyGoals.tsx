@@ -3,13 +3,7 @@ import { useGoalStore } from "../../Store/useGoal";
 import { useUserStore } from "../../Store/useUserStore";
 import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
 import { cn } from "../../lib/utils/utils";
-import {
-  Flame,
-  CheckCircle2,
-  Circle,
-  Zap,
-  PartyPopper,
-} from "lucide-react";
+import { Flame, CheckCircle2, Circle, Zap, PartyPopper } from "lucide-react";
 
 const DAYS_SHORT = ["M", "T", "W", "T", "F", "S", "S"];
 
@@ -246,7 +240,7 @@ const DailyGoals: React.FC = () => {
                   background: bar.active
                     ? bar.isToday
                       ? "var(--color-brand)"
-                      : "rgba(91,59,255,0.45)"
+                      : "var(--color-brand)"
                     : "transparent",
                   minHeight: "4px",
                 }}

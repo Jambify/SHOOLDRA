@@ -4,8 +4,8 @@
   "description": "Prepare for JAMB UTME with practice questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#473BF0",
+  "background_color": "#0a0e27",
+  "theme_color": "#0066ff",
   "scope": "/",
   "orientation": "portrait-primary",
   "icons": [

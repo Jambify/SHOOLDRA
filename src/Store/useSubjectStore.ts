@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabase";
 import { useUserStore } from "./useUserStore";
 import { getDetailedTopicStats } from "../Services/PerformanceService";
 import type { Subject } from "../Types/subject";
+import { getSubjectColor } from "../lib/subjectMeta";
 
 interface SubjectState {
   subjects: Subject[];
@@ -28,7 +29,6 @@ interface SubjectState {
 interface MasterSubjectEntry {
   id: string;
   name: string;
-  color: string;
   total: number;
   topics?: string[];
   icon?: string;
@@ -39,7 +39,6 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
   {
     id: "eng",
     name: "English",
-    color: "var(--color-brand)",
     total: 420,
     topics: [
       "Comprehension",
@@ -52,7 +51,6 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
   {
     id: "math",
     name: "Mathematics",
-    color: "var(--color-success)",
     total: 380,
     topics: [
       "Number Bases",
@@ -79,7 +77,6 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
   {
     id: "phy",
     name: "Physics",
-    color: "var(--color-warn)",
     total: 310,
     topics: [
       "Mechanics",
@@ -93,7 +90,6 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
   {
     id: "chem",
     name: "Chemistry",
-    color: "var(--color-danger)",
     total: 340,
     topics: [
       "Rates of Chemical Reactions",
@@ -115,7 +111,6 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
   {
     id: "bio",
     name: "Biology",
-    color: "var(--color-success)",
     total: 290,
     topics: [
       "Adaptation",
@@ -131,7 +126,6 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
   {
     id: "econ",
     name: "Economics",
-    color: "var(--color-warn)",
     total: 270,
     topics: [
       "Introduction to Economics (Scarcity & Choice)",
@@ -146,7 +140,7 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
     ],
   },
   {
-    id: "gov", name: "Government", color: "var(--color-teal)", total: 300, topics: [
+    id: "gov", name: "Government", total: 300, topics: [
       "Political Science & Governance - Systems of Government",
       "Political Science & Governance - Political Ideologies",
       "Political Science & Governance - Public Opinion",
@@ -165,13 +159,12 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
       "Arms of Government - Pressure Groups"
     ]
   },
-  { id: "lit", name: "Literature in English", color: "var(--color-brand)", total: 300 },
-  { id: "crs", name: "CRS", color: "var(--color-brand)", total: 250 },
-  { id: "irs", name: "IRS", color: "var(--color-success)", total: 250 },
+  { id: "lit", name: "Literature in English", total: 300 },
+  { id: "crs", name: "CRS", total: 250 },
+  { id: "irs", name: "IRS", total: 250 },
   {
     id: "com",
     name: "Commerce",
-    color: "var(--color-warn)",
     total: 300,
     topics: [
       "Business Organization",
@@ -329,7 +322,7 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
       // is undefined here — fall back to a default so this matches Subject["icon"]
       // (a required string), rather than widening the Subject type instead.
       icon: master.icon ?? "📘",
-      color: master.color,
+      color: getSubjectColor(master.name),
       accuracy: accuracy,
       completed: 0, // Removed questions done, as per user request
       total: master.total,

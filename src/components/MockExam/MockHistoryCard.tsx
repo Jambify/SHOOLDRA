@@ -1,5 +1,5 @@
 import React from "react";
-import { Trophy, Clock, Target,  } from "lucide-react";
+import { Trophy, Clock, Target } from "lucide-react";
 import type { MockHistoryEntry } from "../../Services/MockHistoryService";
 
 interface MockHistoryCardProps {
@@ -11,9 +11,7 @@ const formatTime = (secs: number): string => {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   const s = secs % 60;
-  return h > 0
-    ? `${h}h ${m}m`
-    : `${m}m ${String(s).padStart(2, "0")}s`;
+  return h > 0 ? `${h}h ${m}m` : `${m}m ${String(s).padStart(2, "0")}s`;
 };
 
 const getScoreColor = (score: number): string => {
@@ -50,7 +48,9 @@ const MockHistoryCard: React.FC<MockHistoryCardProps> = ({ entry, rank }) => {
         </div>
         {/* JAMB Score */}
         <div className="text-right">
-          <p className={`font-display text-2xl font-black tracking-tight ${getScoreColor(entry.jamb_score)}`}>
+          <p
+            className={`font-display text-2xl font-black tracking-tight ${getScoreColor(entry.jamb_score)}`}
+          >
             {entry.jamb_score}
           </p>
           <p className="text-textDim text-[10px] font-bold uppercase">/ 400</p>
@@ -73,7 +73,9 @@ const MockHistoryCard: React.FC<MockHistoryCardProps> = ({ entry, rank }) => {
         </div>
         <div className="bg-bgSurface rounded-lg p-2 text-center">
           <Clock size={12} className="text-textDim mx-auto mb-1" />
-          <p className="text-textMain text-sm font-bold">{formatTime(entry.time_taken_secs)}</p>
+          <p className="text-textMain text-sm font-bold">
+            {formatTime(entry.time_taken_secs)}
+          </p>
           <p className="text-textDim text-[10px]">Duration</p>
         </div>
       </div>
@@ -83,19 +85,29 @@ const MockHistoryCard: React.FC<MockHistoryCardProps> = ({ entry, rank }) => {
         {entry.subjects.map((subject) => {
           const data = entry.subject_scores[subject];
           if (!data) return null;
-          const pct = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
-          const barColor = pct >= 60 ? "#00C896" : pct >= 40 ? "#FFB020" : "#FF4D6D";
+          const pct =
+            data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+          const barColor =
+            pct >= 60
+              ? "var(--color-success)"
+              : pct >= 40
+                ? "var(--color-warn)"
+                : "var(--color-danger)";
 
           return (
             <div key={subject} className="flex items-center gap-2">
-              <span className="text-textDim w-28 truncate text-[11px]">{subject}</span>
+              <span className="text-textDim w-28 truncate text-[11px]">
+                {subject}
+              </span>
               <div className="bg-bgTrack h-1.5 flex-1 overflow-hidden rounded-full">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${pct}%`, background: barColor }}
                 />
               </div>
-              <span className="text-textDim w-8 text-right text-[11px] font-bold">{pct}%</span>
+              <span className="text-textDim w-8 text-right text-[11px] font-bold">
+                {pct}%
+              </span>
             </div>
           );
         })}

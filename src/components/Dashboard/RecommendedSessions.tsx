@@ -42,6 +42,19 @@ const getSubjectIconComponent = (subject: string) => {
   return icons[subject] || SubjectBookOpen;
 };
 
+const QUIZ_SUBJECT_ALIASES: Record<string, string> = {
+  "Literature in English": "Literature",
+};
+
+const quizRoute = (subject: string, topic?: string): string => {
+  const params = new URLSearchParams({
+    subject: QUIZ_SUBJECT_ALIASES[subject] ?? subject,
+    mode: "quick",
+  });
+  if (topic) params.set("topic", topic);
+  return `/quiz?${params.toString()}`;
+};
+
 interface Session {
   id: string;
   icon: React.ReactNode;
@@ -71,11 +84,9 @@ function getDifficulty(accuracy: number): "Easy" | "Medium" | "Hard" {
 const RecommendedSessions: React.FC = () => {
   const navigate = useNavigate();
   const { subjects } = useSubjectStore();
-  const { questionsCompleted } = useUserStore();
+  const { totalQuestions } = useUserStore();
 
   const sessions = useMemo<Session[]>(() => {
-    const isNewUser = questionsCompleted === 0;
-
     // Sort subjects: weakest first (lowest accuracy), then unstarted
     const sorted = [...subjects].sort((a, b) => {
       if (a.completed === 0 && b.completed === 0) return 0;
@@ -89,22 +100,18 @@ const RecommendedSessions: React.FC = () => {
     // Up to 2 subject-based recommendations
     for (const s of sorted.slice(0, 2)) {
       const diff = getDifficulty(s.accuracy);
-      const qCount = diff === "Hard" ? 10 : diff === "Medium" ? 8 : 5;
       const topic = s.weakTopics[0] ?? "";
-      const route = topic
-        ? `/quiz?subject=${encodeURIComponent(s.name)}&topic=${encodeURIComponent(topic)}`
-        : `/quiz?subject=${encodeURIComponent(s.name)}`;
       const SubjectIcon = getSubjectIconComponent(s.name);
       built.push({
         id: `subj-${s.id}`,
         icon: <SubjectIcon size={18} />,
         iconBg: "bg-brand/10",
         name: `${s.name}: ${s.weakTopics[0] ?? "Practice"}`,
-        questions: qCount,
-        minutes: Math.round(qCount * 1.4),
+        questions: 10,
+        minutes: 10,
         tag: "recommended",
         difficulty: diff,
-        route: route,
+        route: quizRoute(s.name, topic),
         subjectColor: s.color,
       });
     }
@@ -114,18 +121,18 @@ const RecommendedSessions: React.FC = () => {
       id: "mock",
       icon: <FileText size={18} />,
       iconBg: "bg-warn/10",
-      name: isNewUser ? "Try a Mini Mock Exam" : "Full Mock Exam",
-      questions: isNewUser ? 20 : 180,
-      minutes: isNewUser ? 28 : 120,
+      name: "Full Mock Exam",
+      questions: 180,
+      minutes: 120,
       tag: "mock",
       difficulty: "Medium",
       route: "/mock-exams",
     });
 
     return built;
-  }, [subjects, questionsCompleted]);
+  }, [subjects]);
 
-  const isNewUser = questionsCompleted === 0;
+  const isNewUser = totalQuestions === 0;
 
   return (
     <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-5">

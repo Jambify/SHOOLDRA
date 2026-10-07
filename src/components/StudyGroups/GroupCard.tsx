@@ -2,6 +2,7 @@ import React from "react";
 import type { StudyGroup } from "../../Store/useGroupStore";
 import Button from "../ui/Button";
 import { sanitizeXss } from "../../lib/utils/utils";
+import { getSubjectColor } from "../../lib/subjectMeta";
 import { Users, MessageCircle, Activity } from "lucide-react";
 
 interface Props {
@@ -12,18 +13,6 @@ interface Props {
   onOpen: () => void;
 }
 
-const SUBJECT_COLORS: Record<string, string> = {
-  English: "rgb(123,95,255)",
-  Mathematics: "rgb(0,200,150)",
-  Physics: "rgb(255,176,32)",
-  Chemistry: "rgb(255,77,109)",
-  Biology: "rgb(0,200,150)",
-  Economics: "rgb(255,176,32)",
-  Government: "rgb(236,72,153)",
-  Literature: "rgb(249,115,22)",
-  Mixed: "rgb(123,95,255)",
-};
-
 const GroupCard: React.FC<Props> = ({
   group,
   isMember,
@@ -31,7 +20,7 @@ const GroupCard: React.FC<Props> = ({
   onOpen,
   onLeave,
 }) => {
-  const color = SUBJECT_COLORS[group.subject] ?? "rgb(123,95,255)";
+  const color = getSubjectColor(group.subject);
 
   return (
     <div className="bg-bgCard border-borderMuted rounded-brand-lg flex flex-col gap-4 border p-5 transition-all hover:border-white/10">
@@ -39,7 +28,7 @@ const GroupCard: React.FC<Props> = ({
         <div
           className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center text-xl"
           style={{
-            background: `linear-gradient(135deg, ${color}22, ${color}18)`,
+            background: `color-mix(in srgb, ${color} 12%, transparent)`,
           }}
         >
           {group.icon}
@@ -74,7 +63,10 @@ const GroupCard: React.FC<Props> = ({
             <div
               key={i}
               className="border-bgCard flex h-6 w-6 items-center justify-center rounded-full border-2 text-[9px] font-bold"
-              style={{ background: color, color: "#fff" }}
+              style={{
+                background: `color-mix(in srgb, ${color} 14%, transparent)`,
+                color,
+              }}
             >
               {sanitizeXss(m.slice(0, 1).toUpperCase())}
             </div>

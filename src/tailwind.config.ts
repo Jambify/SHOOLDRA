@@ -6,37 +6,37 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: "#5B3BFF",
-          light: "#7B5FFF",
-          dim: "rgba(91,59,255,0.12)",
+          DEFAULT: "var(--color-brand)",
+          light: "var(--color-brand-light)",
+          dim: "var(--color-brand-dim)",
         },
         success: {
-          DEFAULT: "#00C896",
-          dim: "rgba(0,200,150,0.12)",
+          DEFAULT: "var(--color-success)",
+          dim: "var(--color-success-dim)",
         },
         danger: {
-          DEFAULT: "#FF4D6D",
-          dim: "rgba(255,77,109,0.12)",
+          DEFAULT: "var(--color-danger)",
+          dim: "var(--color-danger-dim)",
         },
         warn: {
-          DEFAULT: "#FFB020",
-          dim: "rgba(255,176,32,0.12)",
+          DEFAULT: "var(--color-warn)",
+          dim: "var(--color-warn-dim)",
         },
 
         /* ── Backgrounds ─────────────────────────── */
-        bg: "#0A0A0F" /* page root — used in Topbar backdrop      */,
-        bgDeep: "#070709" /* sidebar background                      */,
-        bgMain: "#0A0A0F" /* alias kept for backwards compat         */,
-        bgSurface: "#111118" /* nav items, input backgrounds            */,
-        bgCard: "#18181F" /* cards, panels                           */,
+        bg: "var(--bg)",
+        bgDeep: "var(--bgDeep)",
+        bgMain: "var(--bgMain)",
+        bgSurface: "var(--bgSurface)",
+        bgCard: "var(--bgCard)",
 
         /* ── Borders ─────────────────────────────── */
-        borderMuted: "rgba(255,255,255,0.07)",
+        borderMuted: "var(--borderMuted)",
 
         /* ── Text ────────────────────────────────── */
-        textMain: "#F0EFF8",
-        textMuted: "#9896B0",
-        textDim: "#5C5A72",
+        textMain: "var(--textMain)",
+        textMuted: "var(--textMuted)",
+        textDim: "var(--textDim)",
       },
 
       fontFamily: {
@@ -79,10 +79,10 @@ export default {
 
       /* ── Box shadows ─────────────────────────── */
       boxShadow: {
-        brand: "0 4px 24px rgba(91,59,255,0.35)",
-        success: "0 4px 16px rgba(0,200,150,0.25)",
-        danger: "0 4px 16px rgba(255,77,109,0.25)",
-        card: "0 4px 32px rgba(0,0,0,0.4)",
+        brand: "var(--shadow-brand-val)",
+        success: "var(--shadow-success-val)",
+        danger: "var(--shadow-danger-val)",
+        card: "var(--shadow-card-val)",
       },
     },
   },

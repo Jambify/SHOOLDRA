@@ -6,8 +6,18 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/android-chrome-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="/android-chrome-512x512.png"
+    />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"
@@ -43,7 +53,7 @@
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="theme-color" content="#7c3cff" />
+    <meta name="theme-color" content="#0066ff" />
     <meta name="background_color" content="#090a16" />
 
     <!-- Google Fonts — non-blocking: matches index.css (--font-display / --font-body / --font-mono) -->
@@ -53,7 +63,10 @@
       rel="preload"
       as="style"
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
     />
     <noscript>
       <link
@@ -72,10 +85,8 @@
 
           if (theme === "light") {
             document.documentElement.setAttribute("data-theme", "light");
-            document.body.style.backgroundColor = "#faf8ff";
           } else {
             document.documentElement.removeAttribute("data-theme");
-            document.body.style.backgroundColor = "#0a0a0f";
           }
         } catch (e) {}
       })();

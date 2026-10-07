@@ -122,7 +122,7 @@ const Hero: React.FC = () => {
           >
             <Link
               to="/signup"
-              className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-[0_16px_40px_rgba(124,60,255,0.18)] transition-all"
+              className="bg-brand hover:bg-brand-light shadow-brand flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white transition-all"
             >
               Start free today <ArrowRight className="h-4 w-4" />
             </Link>
@@ -142,7 +142,7 @@ const Hero: React.FC = () => {
             {stats.map((s) => (
               <div
                 key={s.label}
-                className="bg-bgSurface/60 rounded-3xl p-4 text-center shadow-[0_18px_40px_rgba(0,0,0,0.12)]"
+                className="bg-bgSurface/60 shadow-card rounded-3xl p-4 text-center"
               >
                 {s.animated ? (
                   <motion.div

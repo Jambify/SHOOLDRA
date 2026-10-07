@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import type { Subject } from "../../Types/subject";
 import TopicList from "./SubjectTopic";
 import { cn } from "../../lib/utils/utils";
+import { getAccuracyStatus } from "../../lib/subjectInsights";
 import {
   Trophy,
   AlertTriangle,
@@ -54,21 +55,13 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const statusLabel =
-    subject.weakTopics.length > 0 && subject.accuracy < 55
-      ? { text: "Needs work", cls: "bg-danger/10 text-danger border-danger/30" }
-      : subject.accuracy < 75
-        ? { text: "In progress", cls: "bg-warn/15 text-warn-dark dark:text-warn border-warn/30" }
-        : {
-            text: "On track",
-            cls: "bg-success/10 text-success border-success/30",
-          };
+  const accuracyStatus = getAccuracyStatus(subject.accuracy);
 
   return (
     <div
       className={cn(
         "bg-bgCard border-borderMuted hover:border-textDim/30 overflow-hidden rounded-2xl border transition-all duration-200",
-        isExpanded && "border-borderMuted ring-1 ring-borderMuted"
+        isExpanded && "border-borderMuted ring-borderMuted ring-1",
       )}
     >
       {/* Card Top Header */}
@@ -106,31 +99,31 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
             size={18}
             className={cn(
               "text-textMuted mt-1 shrink-0 transition-transform duration-200",
-              isExpanded && "rotate-180 text-textMain"
+              isExpanded && "text-textMain rotate-180",
             )}
           />
         </div>
 
         {/* Badges Row */}
-        {(isBest || isWorst || statusLabel) && (
+        {(isBest || isWorst || accuracyStatus) && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
             {isBest && (
-              <span className="bg-success/10 text-success border-success/30 flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase">
+              <span className="bg-brand/10 text-brand border-brand/30 flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase">
                 <Trophy size={10} /> Best
               </span>
             )}
             {isWorst && (
-              <span className="bg-danger/10 text-danger border-danger/30 flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase">
+              <span className="bg-warn/10 text-warn-dark dark:text-warn border-warn/30 flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase">
                 <AlertTriangle size={10} /> Worst
               </span>
             )}
             <span
               className={cn(
                 "rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase",
-                statusLabel.cls
+                accuracyStatus.badgeClassName,
               )}
             >
-              {statusLabel.text}
+              {accuracyStatus.label}
             </span>
           </div>
         )}
@@ -140,7 +133,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
           <div>
             <p
               className="font-display text-4xl leading-none font-extrabold tracking-tight sm:text-5xl"
-              style={{ color: subject.color }}
+              style={{ color: accuracyStatus.color }}
             >
               {subject.accuracy}%
             </p>
@@ -160,7 +153,10 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
         <div className="bg-bgTrack h-2 overflow-hidden rounded-full">
           <div
             className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${subject.accuracy}%`, backgroundColor: subject.color }}
+            style={{
+              width: `${subject.accuracy}%`,
+              backgroundColor: accuracyStatus.color,
+            }}
           />
         </div>
       </div>
@@ -179,7 +175,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 color={subject.color}
                 onTopicClick={(topic) => {
                   navigate(
-                    `/quiz?subject=${encodeURIComponent(subject.name)}&topic=${encodeURIComponent(topic)}`
+                    `/quiz?subject=${encodeURIComponent(subject.name)}&topic=${encodeURIComponent(topic)}`,
                   );
                 }}
               />
@@ -193,7 +189,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 e.stopPropagation();
                 navigate(`/quiz?subject=${encodeURIComponent(subject.name)}`);
               }}
-              className="bg-brand hover:bg-brand/90 active:scale-98 rounded-full px-4 py-2.5 text-xs font-bold text-white transition-all"
+              className="bg-brand hover:bg-brand/90 rounded-full px-4 py-2.5 text-xs font-bold text-white transition-all active:scale-98"
             >
               Practise this subject
             </button>
@@ -202,7 +198,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 e.stopPropagation();
                 navigate("/performance");
               }}
-              className="border-borderMuted bg-bgCard hover:bg-bgSurface text-textMain active:scale-98 rounded-full border px-4 py-2.5 text-xs font-bold transition-all"
+              className="border-borderMuted bg-bgCard hover:bg-bgSurface text-textMain rounded-full border px-4 py-2.5 text-xs font-bold transition-all active:scale-98"
             >
               View stats
             </button>

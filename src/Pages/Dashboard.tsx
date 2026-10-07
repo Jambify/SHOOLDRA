@@ -295,7 +295,7 @@ const Dashboard: React.FC = () => {
                 className="font-display leading-none font-black tracking-tighter"
                 style={{
                   fontSize: "2.75rem",
-                  color: isUpdating ? "#6B7280" : cdColor,
+                  color: isUpdating ? "var(--textDim)" : cdColor,
                 }}
               >
                 {isUpdating ? "…" : cdLabel}
@@ -317,7 +317,7 @@ const Dashboard: React.FC = () => {
               style={{
                 fontSize:
                   daysLeft > 99 ? "3.5rem" : daysLeft < 0 ? "2rem" : "4.5rem",
-                color: isUpdating ? "#6B7280" : cdColor,
+                color: isUpdating ? "var(--textDim)" : cdColor,
               }}
             >
               {isUpdating ? "…" : cdLabel}

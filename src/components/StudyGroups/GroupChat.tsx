@@ -7,6 +7,7 @@ import type { StudyGroup } from "../../Store/useGroupStore";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import MessageStatusIndicator from "./MessageStatusIndicator";
 import { cn, sanitizeXss } from "../../lib/utils/utils";
+import { getSubjectColor } from "../../lib/subjectMeta";
 import { truncateInput } from "../../lib/validation";
 import { motion, useAnimation } from "framer-motion";
 import type { PanInfo } from "framer-motion";
@@ -28,23 +29,6 @@ import {
 interface Props {
   group: StudyGroup;
   onBack: () => void;
-}
-
-// ── Palette helper ──────────────────────────────────────
-const SUBJECT_COLORS: Record<string, string> = {
-  English: "#7B5FFF",
-  Mathematics: "#00C896",
-  Physics: "#FFB020",
-  Chemistry: "#FF4D6D",
-  Biology: "#00C896",
-  Mixed: "#7B5FFF",
-  Economics: "#FFB020",
-  Government: "#EC4899",
-  Literature: "#F97316",
-};
-
-function subjectColor(subject: string) {
-  return SUBJECT_COLORS[subject] ?? "#7B5FFF";
 }
 
 // ── Reply Banner ────────────────────────────────────────
@@ -289,7 +273,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const color = subjectColor(groupSubject);
+  const color = getSubjectColor(groupSubject);
 
   const failedInGroup = messages.filter((m) => m.status === "failed");
 
@@ -489,7 +473,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                 {isFirstInGroup ? (
                   <div
                     className="border-borderMuted flex h-8 w-8 items-center justify-center rounded-xl border text-[11px] font-black text-white shadow-sm"
-                    style={{ background: isMe ? color : "rgb(40,40,50)" }}
+                    style={{ background: isMe ? color : "var(--bgSurface)" }}
                   >
                     {(isMe ? name || "Me" : msg.author || "U")
                       .slice(0, 1)

@@ -1,6 +1,7 @@
 import React from "react";
 import { useOfflineStore } from "../../Store/useOfflineStore";
 import { cn } from "../../lib/utils/utils";
+import { getSubjectColor } from "../../lib/subjectMeta";
 import {
   BookOpen,
   Calculator,
@@ -42,28 +43,12 @@ const SUBJ_ICONS: Record<string, LucideIcon> = {
   IRS: Moon,
 };
 
-const SUBJ_COLORS: Record<string, string> = {
-  English: "#7B5FFF",
-  Mathematics: "#00C896",
-  Physics: "#FFB020",
-  Chemistry: "#FF4D6D",
-  Biology: "#00C896",
-  Economics: "#7B5FFF",
-  Government: "#FFB020",
-  Literature: "#7B5FFF",
-  Geography: "#00C896",
-  CRS: "#7B5FFF",
-  Commerce: "#FFB020",
-  History: "#FF4D6D",
-  IRS: "#00C896",
-};
-
 const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
   const { downloadedPacks, downloadingId, downloadPack, removePack } =
     useOfflineStore();
   const isDownloaded = downloadedPacks.includes(pack.id);
   const isDownloading = downloadingId === pack.id;
-  const color = SUBJ_COLORS[pack.subject] ?? "#7B5FFF";
+  const color = getSubjectColor(pack.subject);
   const Icon = SUBJ_ICONS[pack.subject] ?? BookOpen;
 
   // FIX: count/size are placeholder ("0" / "— (TODO)") until real per-subject
@@ -84,7 +69,7 @@ const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
     >
       <div
         className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center"
-        style={{ background: color + "18" }}
+        style={{ background: `color-mix(in srgb, ${color} 12%, transparent)` }}
       >
         <Icon size={20} style={{ color }} />
       </div>

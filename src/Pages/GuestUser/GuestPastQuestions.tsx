@@ -21,6 +21,7 @@ import { fetchAllQuestionsForBrowse } from "../../Services/questionService";
 import ValidatedInput from "../../components/ui/ValidatedInput";
 import { truncateInput } from "../../lib/validation";
 import { renderQuestionText } from "../../lib/utils/renderQuestionText";
+import { getSubjectColor } from "../../lib/subjectMeta";
 
 const VALID_YEARS = [
   "All",
@@ -62,25 +63,6 @@ const SUBJECT_BY_SLUG: Record<string, string> = Object.fromEntries(
 const VALID_YEAR_SET: Set<string> = new Set(
   VALID_YEARS.filter((y) => y !== "All"),
 );
-
-// Theme tokens, not hardcoded hex — so a future palette change (like the
-// one earlier in this project) updates these automatically instead of
-// needing another hunt-and-replace pass.
-const SUBJECT_COLORS: Record<string, string> = {
-  English: "var(--color-brand)",
-  Mathematics: "var(--color-success)",
-  Physics: "var(--color-warn)",
-  Chemistry: "var(--color-danger)",
-  Biology: "var(--color-teal)",
-  Economics: "var(--color-brand)",
-  Government: "var(--color-warn)",
-  Literature: "var(--color-brand)",
-  History: "var(--color-danger)",
-  Geography: "var(--color-teal)",
-  CRS: "var(--color-brand)",
-  IRS: "var(--color-teal)",
-  Commerce: "var(--color-warn)",
-};
 
 // Guests see up to this many questions per filter selection, then hit a
 // sign-up CTA instead of endless pagination.
@@ -268,8 +250,11 @@ const GuestPastQuestions = () => {
             {subject === "All" && (
               <>
                 {" "}
-                Showing <span className="font-semibold">{DEFAULT_FETCH_SUBJECT}</span> to
-                start — pick a subject below to switch.
+                Showing{" "}
+                <span className="font-semibold">
+                  {DEFAULT_FETCH_SUBJECT}
+                </span>{" "}
+                to start — pick a subject below to switch.
               </>
             )}
           </p>
@@ -428,7 +413,7 @@ const GuestPastQuestions = () => {
 
             <div className="space-y-4">
               {preview.map((q, idx) => {
-                const color = SUBJECT_COLORS[q.subject] || "var(--color-brand)";
+                const color = getSubjectColor(q.subject);
                 const isExpanded = expandedId === q.id;
 
                 return (

@@ -589,12 +589,12 @@ const Performance: React.FC = () => {
 
                   <div className="bg-bgDeep border-borderMuted/20 h-5 overflow-hidden rounded-full border p-1.5">
                     <div
-                      className="from-brand/60 via-brand to-brand-light relative h-full rounded-full bg-linear-to-r shadow-[0_0_20px_rgba(123,95,255,0.5)] transition-all duration-1000 ease-out"
+                      className="from-brand/60 via-brand to-brand-light shadow-brand relative h-full rounded-full bg-linear-to-r transition-all duration-1000 ease-out"
                       style={{
                         width: `${Math.min((bestScore / userTargetScore) * 100, 100)}%`,
                       }}
                     >
-                      <div className="absolute inset-0 animate-[shimmer_2s_linear_infinite] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%)] bg-size-[20px_20px]"></div>
+                      <div className="absolute inset-0 animate-[shimmer_2s_linear_infinite] bg-[linear-gradient(45deg,transparent_25%,color-mix(in_srgb,var(--textMain)_20%,transparent)_50%,transparent_75%)] bg-size-[20px_20px]"></div>
                     </div>
                   </div>
 

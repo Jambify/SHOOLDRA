@@ -20,6 +20,12 @@
 //      — if a subject ever fails to resolve again (new subject added,
 //      naming drifts again, etc.) the student sees it immediately instead
 //      of getting a shorter exam with no explanation.
+//
+// LOADING PASS: the (up to 4) subjects are now fetched IN PARALLEL instead
+// of one after another, "Cancel" on the loading screen now really cancels
+// (a cancelled attempt can no longer start the exam later), and the live
+// exam hides the announcement / Pro banners and sizes itself with dvh so
+// it fits phone browsers with a collapsing address bar.
 
 import React, { useState, useEffect, useCallback } from "react";
 import PageHelmet from "../../components/SEO/PageHelmet";
@@ -42,7 +48,7 @@ import type { Question } from "../../Types";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import { saveMockExamHistory } from "../../Services/MockHistoryService";
 import MockHistory from "../../components/MockExam/MockHistory";
-import schooldraLogo from "../../../src/assets/schooldraLogo.webp";
+import schooldraLogo from "../../assets/schooldraLogo.webp";
 import { renderQuestionText } from "../../lib/utils/renderQuestionText";
 
 import {
@@ -81,6 +87,8 @@ const AVAILABLE_SUBJECTS = [
   { id: "IRS", name: "IRS", required: 40 },
   { id: "Commerce", name: "Commerce", required: 40 },
 ];
+
+type SubjectConfig = (typeof AVAILABLE_SUBJECTS)[number];
 
 // Single point of truth for reconciling naming differences between
 // SUBJECT_COMBO_MAP (which must match the DB / subject_accuracy naming)
@@ -167,6 +175,11 @@ const MockExam: React.FC = () => {
   const [jumpTo, setJumpTo] = useState("");
   const [activeSubject, setActiveSubject] = useState("English");
 
+  // Identifies the current "start exam" attempt. Cancelling (or starting
+  // again) bumps it, which turns every later step of an older attempt into
+  // a no-op, so a cancelled load can never start the exam afterwards.
+  const loadRunRef = React.useRef(0);
+
   // Timer logic
   const handleTimeUp = useCallback(() => {
     finishExam(MOCK_DURATION);
@@ -226,7 +239,10 @@ const MockExam: React.FC = () => {
           estimatedTime={4}
           showSlowNetworkWarning={showSlowNetworkWarning}
           onCancel={() => {
+            // Invalidate the running attempt so it can't start the exam later
+            loadRunRef.current += 1;
             setIsLoadingQuestions(false);
+            setShowSlowNetworkWarning(false);
           }}
         />
       </>
@@ -234,28 +250,33 @@ const MockExam: React.FC = () => {
   }
 
   const handleStart = async () => {
+    loadRunRef.current += 1;
+    const runId = loadRunRef.current;
+    const isCurrent = () => runId === loadRunRef.current;
+
     setIsLoadingQuestions(true);
     setErrorMessage(null);
     setShowSlowNetworkWarning(false);
 
     // Set timeout for slow network warning
     const slowNetworkTimer = setTimeout(() => {
-      setShowSlowNetworkWarning(true);
+      if (isCurrent()) setShowSlowNetworkWarning(true);
     }, 5000); // 5 seconds
 
-    // Wait for loader to mount
-    await new Promise((r) => setTimeout(r, 100));
-
     try {
+      // Wait for loader to mount
+      await new Promise((r) => setTimeout(r, 100));
+      if (!isCurrent()) return;
+
       // ── CHECK NETWORK & CACHE ──────────────────────────────
       const isOnline = navigator.onLine;
       const offlineStore = useOfflineStore.getState();
 
-      const finalQuestionsList: Question[] = [];
-      // NEW — tracks any subject the user picked that we could NOT match
-      // to a real config, so we can surface it instead of silently
-      // starting a shorter exam.
+      // Resolve every picked subject up front. A subject we can't match to
+      // a real config is reported instead of silently shrinking the exam
+      // (and now before any network work is spent on the others).
       const unresolvedSubjects: string[] = [];
+      const subjectJobs: { subjectId: string; config: SubjectConfig }[] = [];
 
       for (const rawSubjectId of selectedCombination) {
         if (!rawSubjectId) continue; // empty slot — user hasn't picked yet, not an error
@@ -264,10 +285,6 @@ const MockExam: React.FC = () => {
         const config = AVAILABLE_SUBJECTS.find((s) => s.id === subjectId);
 
         if (!config) {
-          // FIX: this used to be a silent `continue`, which meant a
-          // naming mismatch (like Literature's) quietly shrank the exam
-          // with zero feedback to the student. Now we collect it and
-          // fail loudly below instead.
           console.error(
             `[MockExam] No AVAILABLE_SUBJECTS config found for "${rawSubjectId}" (normalized: "${subjectId}"). This subject will be reported to the user instead of silently dropped.`,
           );
@@ -275,6 +292,22 @@ const MockExam: React.FC = () => {
           continue;
         }
 
+        subjectJobs.push({ subjectId, config });
+      }
+
+      if (unresolvedSubjects.length > 0) {
+        throw new Error(
+          `SUBJECT_UNRESOLVED: We couldn't load ${unresolvedSubjects.join(
+            ", ",
+          )}. Please contact support — your exam was not started so you don't lose a subject unexpectedly.`,
+        );
+      }
+
+      // Loads, trims and option-shuffles ONE subject's questions.
+      const loadSubject = async (
+        subjectId: string,
+        config: SubjectConfig,
+      ): Promise<Question[]> => {
         let fetched: Question[] = [];
 
         // Try offline first if user is offline
@@ -352,24 +385,28 @@ const MockExam: React.FC = () => {
         }
 
         // Randomize options for each question to prevent memorization
-        const randomized = fetched.map((q: Question) => {
+        return fetched.map((q: Question) => {
           const correctOptionText = q.options[q.answer];
           const shuffledOptions = shuffleArray(q.options);
           const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
           return { ...q, options: shuffledOptions, answer: newCorrectIndex };
         });
+      };
 
-        finalQuestionsList.push(...randomized);
-      }
+      // All subjects load at the same time (was one after another). The
+      // results come back in the same order as the selected combination, so
+      // the exam still opens with English first.
+      const perSubject = await Promise.all(
+        subjectJobs.map(({ subjectId, config }) =>
+          loadSubject(subjectId, config),
+        ),
+      );
+      if (!isCurrent()) return;
 
-      // NEW — fail loudly instead of silently starting a shorter exam.
-      if (unresolvedSubjects.length > 0) {
-        throw new Error(
-          `SUBJECT_UNRESOLVED: We couldn't load ${unresolvedSubjects.join(
-            ", ",
-          )}. Please contact support — your exam was not started so you don't lose a subject unexpectedly.`,
-        );
-      }
+      const finalQuestionsList = perSubject.reduce<Question[]>(
+        (all, subjectQuestions) => all.concat(subjectQuestions),
+        [],
+      );
 
       if (finalQuestionsList.length === 0) {
         throw new Error("No questions found for the selected subjects.");
@@ -378,6 +415,7 @@ const MockExam: React.FC = () => {
       startExam(finalQuestionsList, MOCK_DURATION);
       setActiveSubject(selectedCombination[0]);
     } catch (error: unknown) {
+      if (!isCurrent()) return; // cancelled: nothing to report
       console.error("Error starting exam:", error);
       setErrorMessage(
         (error instanceof Error ? error.message : undefined) ||
@@ -385,8 +423,12 @@ const MockExam: React.FC = () => {
       );
     } finally {
       clearTimeout(slowNetworkTimer);
-      setIsLoadingQuestions(false);
-      setShowSlowNetworkWarning(false);
+      // Only the latest attempt may touch the loading state, otherwise a
+      // cancelled run finishing late would switch off a newer run's loader.
+      if (isCurrent()) {
+        setIsLoadingQuestions(false);
+        setShowSlowNetworkWarning(false);
+      }
     }
   };
 
@@ -754,11 +796,12 @@ const MockExam: React.FC = () => {
     <AppLayout
       currentPage="mock"
       hideSidebar
+      hideBanners
       className="bg-bgMain"
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      <div className="bg-bgMain flex h-screen overflow-hidden">
+      <div className="bg-bgMain flex h-dvh overflow-hidden">
         {/* Desktop Sidebar (Internal to Mock Exam) */}
         <div className="bg-bgCard border-borderMuted hidden w-72 flex-col overflow-y-auto border-r lg:flex">
           <div className="border-borderMuted bg-bgSurface/50 border-b p-5">
@@ -774,7 +817,6 @@ const MockExam: React.FC = () => {
                   ease: "easeInOut",
                 }}
               >
-                <div className="absolute inset-0 bg-linear-to-tr from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                 <img
                   src={schooldraLogo}
                   alt="Schooldra"
@@ -1078,7 +1120,7 @@ const MockExam: React.FC = () => {
             </div>
 
             {/* Mobile Submit Button - Fixed at bottom */}
-            <div className="bg-bgCard border-borderMuted sticky bottom-0 border-t p-5 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]">
+            <div className="bg-bgCard border-borderMuted shadow-card sticky bottom-0 border-t p-5">
               <Button
                 variant="success"
                 fullWidth

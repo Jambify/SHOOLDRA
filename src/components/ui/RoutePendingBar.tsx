@@ -30,7 +30,7 @@ const RoutePendingBar: React.FC = () => {
       {visible && (
         <motion.div
           aria-hidden="true"
-          className="bg-brand pointer-events-none fixed top-0 left-0 z-[60] h-0.5 shadow-[0_0_8px] shadow-[#0066FF]/60"
+          className="bg-brand shadow-brand pointer-events-none fixed top-0 left-0 z-[60] h-0.5"
           initial={{ width: "0%", opacity: 1 }}
           animate={{ width: "85%" }}
           exit={{ width: "100%", opacity: 0, transition: { duration: 0.25 } }}

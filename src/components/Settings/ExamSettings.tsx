@@ -9,24 +9,29 @@ import { Calendar, Clock } from "lucide-react";
 import { truncateInput } from "../../lib/validation";
 
 const TARGET_SCORES = [
-  { range: "320+", label: "Elite", sub: "Top 1% nationwide", color: "#7B5FFF" },
+  {
+    range: "320+",
+    label: "Elite",
+    sub: "Top 1% nationwide",
+    color: "var(--color-brand)",
+  },
   {
     range: "280–319",
     label: "Excellent",
     sub: "Competitive for all Unis",
-    color: "#00C896",
+    color: "var(--color-success)",
   },
   {
     range: "250–279",
     label: "Strong",
     sub: "Target for State/Federal",
-    color: "#FFB020",
+    color: "var(--color-warn)",
   },
   {
     range: "200–249",
     label: "Target",
     sub: "Standard Entry Level",
-    color: "#FF4D6D",
+    color: "var(--color-danger)",
   },
 ];
 
@@ -64,14 +69,14 @@ const ExamSettings: React.FC = () => {
   // Colour the countdown based on urgency
   const cdColor =
     daysLeft < 0
-      ? "#6B7280"
+      ? "var(--textDim)"
       : daysLeft === 0
-        ? "#F97316"
+        ? "var(--color-warn)"
         : daysLeft <= 7
-          ? "#EF4444"
+          ? "var(--color-danger)"
           : daysLeft <= 30
-            ? "#F59E0B"
-            : "#7B5FFF";
+            ? "var(--color-warn)"
+            : "var(--color-brand)";
 
   return (
     <div className="flex flex-col gap-5">
@@ -82,8 +87,8 @@ const ExamSettings: React.FC = () => {
             <div
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
               style={{
-                background: `${cdColor}18`,
-                border: `1px solid ${cdColor}30`,
+                background: `color-mix(in srgb, ${cdColor} 10%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${cdColor} 30%, transparent)`,
               }}
             >
               <Clock className="h-5 w-5" style={{ color: cdColor }} />

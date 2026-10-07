@@ -468,7 +468,7 @@ const GuestQuiz: React.FC = () => {
               animate={{
                 width: `${((current + (answered ? 1 : 0)) / questions.length) * 100}%`,
               }}
-              className="bg-brand h-full rounded-full shadow-[0_0_10px_rgba(123,95,255,0.5)]"
+              className="bg-brand shadow-brand h-full rounded-full"
               transition={{ type: "spring", stiffness: 50, damping: 20 }}
             />
           </div>

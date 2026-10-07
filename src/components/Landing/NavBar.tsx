@@ -78,7 +78,14 @@ const Navbar: React.FC = () => {
           className="flex cursor-pointer items-center gap-2.5"
           onClick={() => navigate("/")}
         >
-          <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" width={32} height={32} loading="eager" />
+          <img
+            src={schooldraLogo}
+            alt="Schooldra"
+            className="h-8 w-8"
+            width={32}
+            height={32}
+            loading="eager"
+          />
           <span className="font-display text-lg font-bold tracking-tight">
             Schooldra
           </span>
@@ -119,16 +126,20 @@ const Navbar: React.FC = () => {
           </div>
           <Link
             to="/signup"
-            className="bg-brand hover:bg-brand-light rounded-full px-5 py-2.5 text-sm font-bold text-white transition-all shadow-[0_14px_30px_rgba(124,60,255,0.18)]"
+            className="bg-brand hover:bg-brand-light shadow-brand rounded-full px-5 py-2.5 text-sm font-bold text-white transition-all"
           >
             Start now
           </Link>
           <button
-            className="md:hidden text-textMain"
+            className="text-textMain md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
       </div>

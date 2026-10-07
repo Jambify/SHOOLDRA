@@ -41,6 +41,36 @@ export type WorstSubjectResult =
 // without a specifically tracked weak topic.
 const LOW_ACCURACY_THRESHOLD = 50;
 
+export type AccuracyStatus = {
+  label: "Needs work" | "In progress" | "On track";
+  color: string;
+  badgeClassName: string;
+};
+
+export function getAccuracyStatus(accuracy: number): AccuracyStatus {
+  if (accuracy < 40) {
+    return {
+      label: "Needs work",
+      color: "var(--color-danger)",
+      badgeClassName: "bg-danger/10 text-danger border-danger/30",
+    };
+  }
+
+  if (accuracy < 70) {
+    return {
+      label: "In progress",
+      color: "var(--color-warn)",
+      badgeClassName: "bg-warn/15 text-warn-dark dark:text-warn border-warn/30",
+    };
+  }
+
+  return {
+    label: "On track",
+    color: "var(--color-success)",
+    badgeClassName: "bg-success/10 text-success border-success/30",
+  };
+}
+
 export function computeBestWorstSubjects(
   subjects: Subject[],
   userSubjectNames: string[],

@@ -69,17 +69,17 @@ const WeeklyChart: React.FC = () => {
               </div>
 
               <div
-                className="relative w-full overflow-hidden rounded-t-xl transition-all duration-1000 ease-out group-hover:shadow-[0_0_20px_rgba(91,59,255,0.3)] group-hover:brightness-125"
+                className="group-hover:shadow-brand relative w-full overflow-hidden rounded-t-xl transition-all duration-1000 ease-out group-hover:brightness-125"
                 style={{
                   height: `${heightPct}%`,
                   background: isEmpty
-                    ? "rgba(255,255,255,0.03)"
-                    : `linear-gradient(to top, rgba(91,59,255,0.4), rgba(123,95,255,0.9))`,
-                  border: isEmpty ? "1px dashed rgba(255,255,255,0.1)" : "none",
+                    ? "var(--bgTrack)"
+                    : `linear-gradient(to top, var(--color-brand-dim), var(--color-brand-light))`,
+                  border: isEmpty ? "1px dashed var(--borderMuted)" : "none",
                 }}
               >
                 {!isEmpty && (
-                  <div className="absolute inset-0 animate-[shimmer_4s_linear_infinite] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[40px_40px]" />
+                  <div className="absolute inset-0 animate-[shimmer_4s_linear_infinite] bg-[linear-gradient(45deg,transparent_25%,color-mix(in_srgb,var(--textMain)_10%,transparent)_50%,transparent_75%)] bg-size-[40px_40px]" />
                 )}
               </div>
               <span className="text-textDim group-hover:text-textMain text-[11px] font-bold tracking-tighter uppercase transition-colors">

@@ -9,6 +9,7 @@ import Button from "../components/ui/Button";
 import ValidatedInput from "../components/ui/ValidatedInput";
 import { truncateInput } from "../lib/validation";
 import { renderQuestionText } from "../lib/utils/renderQuestionText";
+import { getSubjectColor } from "../lib/subjectMeta";
 import { ExplanationText } from "../components/shared/ExplanationText";
 import {
   Search,
@@ -81,22 +82,6 @@ const ALL_SUBJECTS = [
 // we already fixed elsewhere. Now a subject is always required; this is
 // the fallback used when the URL doesn't specify one.
 const DEFAULT_SUBJECT = ALL_SUBJECTS[0];
-
-const SUBJECT_COLORS: Record<string, string> = {
-  English: "#7B5FFF",
-  Mathematics: "#00C896",
-  Physics: "#FFB020",
-  Chemistry: "#FF4D6D",
-  Biology: "#00C896",
-  Economics: "#7B5FFF",
-  Government: "#FFB020",
-  Literature: "#7B5FFF",
-  History: "#FF4D6D",
-  Geography: "#00C896",
-  CRS: "#7B5FFF",
-  IRS: "#00C896",
-  Commerce: "#FFB020",
-};
 
 const PAGE_SIZE = 20;
 
@@ -577,7 +562,7 @@ const PastQuestions = () => {
 
             <div className="space-y-4">
               {paginated.map((q, idx) => {
-                const color = SUBJECT_COLORS[q.subject] || "#7B5FFF";
+                const color = getSubjectColor(q.subject);
                 const isExpanded = expandedId === q.id;
                 const questionNum = (page - 1) * PAGE_SIZE + idx + 1;
 
