@@ -25,7 +25,6 @@ dist-ssr/
 # Project Specific
 Jambify_SRS_COMPLETE.md
 # Add any temp design files or SQL dumps here
-*.sql
 *.pdf
 *.md
 
