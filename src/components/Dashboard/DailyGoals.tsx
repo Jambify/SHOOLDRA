@@ -162,7 +162,7 @@ const DailyGoals: React.FC = () => {
           <div
             className={cn(
               "h-full rounded-full transition-all duration-700",
-              goalsComplete ? "bg-success" : "bg-brand",
+              goalsComplete ? "bg-success" : "bg-teal",
             )}
             style={{ width: `${goalsPct}%` }}
           />
@@ -215,11 +215,11 @@ const DailyGoals: React.FC = () => {
       <div className="border-borderMuted mt-4 border-t pt-4">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-textDim flex items-center gap-1.5 text-xs">
-            <Flame className="text-warn h-3.5 w-3.5" />
+            <Flame className="text-coral h-3.5 w-3.5" />
             {streak > 0 ? `${streak}-day streak` : "This week's activity"}
           </p>
           {streak >= 7 && (
-            <span className="text-warn flex items-center gap-1 text-[10px] font-semibold">
+            <span className="text-coral flex items-center gap-1 text-[10px] font-semibold">
               <Flame size={10} /> On fire!
             </span>
           )}
@@ -239,8 +239,8 @@ const DailyGoals: React.FC = () => {
                   height: bar.active ? "100%" : bar.isToday ? "30%" : "20%",
                   background: bar.active
                     ? bar.isToday
-                      ? "var(--color-brand)"
-                      : "var(--color-brand)"
+                      ? "var(--color-coral)"
+                      : "var(--color-teal)"
                     : "transparent",
                   minHeight: "4px",
                 }}

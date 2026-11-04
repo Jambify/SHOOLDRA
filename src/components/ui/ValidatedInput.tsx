@@ -1,6 +1,7 @@
 import React from "react";
 
 interface Props {
+  id?: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -19,6 +20,7 @@ interface Props {
 }
 
 const ValidatedInput: React.FC<Props> = ({
+  id,
   value,
   onChange,
   placeholder,
@@ -47,6 +49,7 @@ const ValidatedInput: React.FC<Props> = ({
     <div>
       {multiline ? (
         <textarea
+          id={id}
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           placeholder={placeholder}
@@ -59,6 +62,7 @@ const ValidatedInput: React.FC<Props> = ({
         />
       ) : (
         <input
+          id={id}
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           placeholder={placeholder}

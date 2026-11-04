@@ -74,6 +74,7 @@ const ShowcaseList: React.FC = () => {
         "Reattempt with fresh question sets",
       ],
       cta: "See how mock exams work",
+      route: "/guest/mock",
       image: mockExamImg,
       reverse: false,
     },
@@ -87,7 +88,8 @@ const ShowcaseList: React.FC = () => {
         "AI Tutor explains why each answer is right or wrong",
         "Try 12 questions per subject free, no sign-up",
       ],
-      cta: "Browse past questions",
+      cta: "Browse free past questions",
+      route: "/guest/past-questions",
       image: pastQuestionsImg,
       reverse: true,
     },
@@ -95,13 +97,14 @@ const ShowcaseList: React.FC = () => {
       id: "performance",
       eyebrow: "Performance tracking",
       title: "See exactly where you're improving",
-      desc: "Daily quizzes target your weakest subjects automatically, and your dashboard shows the trend over time.",
+      desc: "After a quiz, SCHOOLDRA highlights your lowest-accuracy tracked topic and lets you launch a focused 10-question practice set from your dashboard.",
       bullets: [
-        "Weak-topic detection after every quiz",
-        "Streaks and weekly progress trends",
-        "Personal predicted UTME score",
+        "See the topic and accuracy behind each recommendation",
+        "Jump straight from a weak topic into focused practice",
+        "Follow weekly question activity and study streaks",
       ],
-      cta: "See performance tracking",
+      cta: "Create an account to track progress",
+      route: "/signup",
       image: performanceImg,
       reverse: false,
     },
@@ -109,8 +112,12 @@ const ShowcaseList: React.FC = () => {
 
   return (
     <>
-      {sections.map((s) => (
-        <ShowcaseSection key={s.id} {...s} onCtaClick={() => navigate("/signup")} />
+      {sections.map(({ route, ...section }) => (
+        <ShowcaseSection
+          key={section.id}
+          {...section}
+          onCtaClick={() => navigate(route)}
+        />
       ))}
     </>
   );

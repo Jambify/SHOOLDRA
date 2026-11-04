@@ -81,19 +81,19 @@ const SUBJECT_ICONS: Record<string, LucideIcon> = {
 };
 
 export const SUBJECT_COLORS: Record<string, string> = {
-  English: "var(--color-brand)",
-  Mathematics: "var(--color-brand-light)",
-  Physics: "var(--color-teal)",
-  Chemistry: "var(--color-teal-light)",
-  Biology: "var(--color-brand)",
-  Economics: "var(--color-teal)",
-  Government: "var(--color-brand-light)",
-  Literature: "var(--color-teal-light)",
-  History: "var(--color-brand)",
-  Geography: "var(--color-teal)",
-  CRS: "var(--color-brand-light)",
-  IRS: "var(--color-teal-light)",
-  Commerce: "var(--color-brand)",
+  English: "var(--subject-english)",
+  Mathematics: "var(--subject-mathematics)",
+  Physics: "var(--subject-physics)",
+  Chemistry: "var(--subject-chemistry)",
+  Biology: "var(--subject-biology)",
+  Economics: "var(--subject-economics)",
+  Government: "var(--subject-government)",
+  Literature: "var(--subject-literature)",
+  History: "var(--subject-history)",
+  Geography: "var(--subject-geography)",
+  CRS: "var(--subject-crs)",
+  IRS: "var(--subject-irs)",
+  Commerce: "var(--subject-commerce)",
 };
 
 const DEFAULT_SUBJECT_ICON = BookOpen;

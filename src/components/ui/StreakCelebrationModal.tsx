@@ -25,8 +25,8 @@ const getStreakContent = (
       title: "One Full Week!",
       message:
         "You've completed 7 consecutive days of practice. That's real dedication — keep this momentum going!",
-      icon: <Flame size={40} className="text-warn" />,
-      accentColor: "from-warn/20 to-transparent",
+      icon: <Flame size={40} className="text-coral" />,
+      accentColor: "from-coral/20 to-transparent",
       badge: { icon: <Flame size={12} />, text: "Week 1 Complete" },
     };
   }
@@ -36,8 +36,8 @@ const getStreakContent = (
       title: "Two Weeks Strong!",
       message:
         "14 days straight! You're building a habit that will carry you through JAMB. Most students never make it this far.",
-      icon: <Star size={40} className="text-warn" />,
-      accentColor: "from-warn/20 to-transparent",
+      icon: <Star size={40} className="text-coral" />,
+      accentColor: "from-coral/20 to-transparent",
       badge: { icon: <Star size={12} />, text: "Week 2 Complete" },
     };
   }
@@ -47,8 +47,8 @@ const getStreakContent = (
       title: "Three Week Champion!",
       message:
         "21 days — scientists say habits form at 21 days. You've officially made daily practice part of who you are.",
-      icon: <Trophy size={40} className="text-brand" />,
-      accentColor: "from-brand/20 to-transparent",
+      icon: <Trophy size={40} className="text-coral" />,
+      accentColor: "from-coral/20 to-transparent",
       badge: { icon: <Trophy size={12} />, text: "Week 3 Complete" },
     };
   }
@@ -58,8 +58,8 @@ const getStreakContent = (
       title: "One Month Warrior!",
       message:
         "28 days of non-stop grinding. You are in rare company. JAMB success is inevitable at this rate.",
-      icon: <Crown size={40} className="text-warn" />,
-      accentColor: "from-warn/20 to-transparent",
+      icon: <Crown size={40} className="text-coral" />,
+      accentColor: "from-coral/20 to-transparent",
       badge: { icon: <Crown size={12} />, text: "One Month Strong" },
     };
   }
@@ -68,8 +68,8 @@ const getStreakContent = (
   return {
     title: `${week} Weeks Unstoppable!`,
     message: `${streak} days of consistent practice. You're proof that dedication beats talent every single time. JAMB doesn't stand a chance.`,
-    icon: <Rocket size={40} className="text-brand" />,
-    accentColor: "from-brand/20 to-transparent",
+    icon: <Rocket size={40} className="text-coral" />,
+    accentColor: "from-coral/20 to-transparent",
     badge: { icon: <Rocket size={12} />, text: `${streak}-Day Streak` },
   };
 };
@@ -98,7 +98,7 @@ const StreakCelebrationModal: React.FC<StreakCelebrationModalProps> = ({
             />
 
             {/* Top bar */}
-            <div className="bg-brand absolute top-0 left-0 h-1.5 w-full" />
+            <div className="bg-coral absolute top-0 left-0 h-1.5 w-full" />
 
             <div className="relative p-8 text-center">
               {/* Animated icon */}
@@ -115,7 +115,7 @@ const StreakCelebrationModal: React.FC<StreakCelebrationModalProps> = ({
               </motion.div>
 
               {/* Badge pill */}
-              <div className="bg-brand/10 border-brand/20 text-brand-light mx-auto mb-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black tracking-widest uppercase">
+              <div className="bg-coral/10 border-coral/20 text-coral mx-auto mb-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black tracking-widest uppercase">
                 {badge.icon} {badge.text}
               </div>
 
@@ -125,7 +125,7 @@ const StreakCelebrationModal: React.FC<StreakCelebrationModalProps> = ({
 
               {/* Big streak number */}
               <div className="my-4 flex items-baseline justify-center gap-1">
-                <span className="font-display text-brand text-6xl leading-none font-black tracking-tighter">
+                <span className="font-display text-coral text-6xl leading-none font-black tracking-tighter">
                   {streak}
                 </span>
                 <span className="text-textDim text-lg font-bold">days</span>

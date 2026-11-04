@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   ArrowUp,
   RefreshCw,
+  ChevronDown,
 } from "lucide-react";
 import type { Question } from "../Types";
 import PageHelmet from "../components/SEO/PageHelmet";
@@ -121,6 +122,13 @@ const PastQuestions = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const activeFilterCount = [
+    filters.year !== "All",
+    filters.topic !== "All",
+    filters.difficulty !== "All",
+    filters.search.length > 0,
+  ].filter(Boolean).length;
 
   // FIX: needed for the offline-guard and the "no results" condition
   // below — same reasoning as before, no UI attached to it beyond
@@ -358,13 +366,49 @@ const PastQuestions = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-bgCard border-borderMuted space-y-4 rounded-2xl border p-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="bg-bgCard border-borderMuted rounded-2xl border p-4 sm:p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-textMain text-sm font-semibold">Find a question</h2>
+              <p className="text-textDim mt-0.5 truncate text-xs">
+                {filters.subject}{filters.year !== "All" ? ` · ${filters.year}` : ""}
+                {filters.topic !== "All" ? ` · ${filters.topic}` : ""}
+                {filters.difficulty !== "All" ? ` · ${filters.difficulty}` : ""}
+                {filters.search ? ` · “${filters.search}”` : ""}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              {activeFilterCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleFilterChange({ year: "All", topic: "All", difficulty: "All", search: "" })}
+                  className="text-brand-light text-xs font-semibold hover:underline"
+                >
+                  Reset
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsFiltersOpen((open) => !open)}
+                aria-expanded={isFiltersOpen}
+                aria-controls="past-question-filters"
+                className="border-borderMuted text-textMain inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold lg:hidden"
+              >
+                Filters{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ""}
+                <ChevronDown size={14} className={`transition-transform ${isFiltersOpen ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+          </div>
+          <div
+            id="past-question-filters"
+            className={`${isFiltersOpen ? "grid" : "hidden"} grid-cols-1 gap-4 sm:grid-cols-2 lg:grid lg:grid-cols-5`}
+          >
             <div className="space-y-1.5">
-              <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
+              <label htmlFor="past-subject" className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Subject
               </label>
               <select
+                id="past-subject"
                 value={filters.subject}
                 onChange={(e) =>
                   handleFilterChange({ subject: e.target.value })
@@ -380,10 +424,11 @@ const PastQuestions = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
+              <label htmlFor="past-year" className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Year
               </label>
               <select
+                id="past-year"
                 value={filters.year}
                 onChange={(e) => handleFilterChange({ year: e.target.value })}
                 className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
@@ -397,10 +442,11 @@ const PastQuestions = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
+              <label htmlFor="past-topic" className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Topic
               </label>
               <select
+                id="past-topic"
                 value={filters.topic}
                 onChange={(e) => handleFilterChange({ topic: e.target.value })}
                 className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
@@ -415,7 +461,25 @@ const PastQuestions = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
+              <label htmlFor="past-difficulty" className="text-textDim text-xs font-semibold tracking-wider uppercase">
+                Difficulty
+              </label>
+              <select
+                id="past-difficulty"
+                value={filters.difficulty}
+                onChange={(e) => handleFilterChange({ difficulty: e.target.value })}
+                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
+              >
+                {["All", "Easy", "Medium", "Hard"].map((difficulty) => (
+                  <option key={difficulty} value={difficulty}>
+                    {difficulty === "All" ? "All Difficulties" : difficulty}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="past-search" className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Search
               </label>
               <div className="relative">
@@ -424,11 +488,12 @@ const PastQuestions = () => {
                   className="text-textDim absolute top-1/2 left-4 -translate-y-1/2"
                 />
                 <ValidatedInput
+                  id="past-search"
                   value={filters.search}
                   onChange={(v) =>
                     handleFilterChange({ search: truncateInput(v, 200) })
                   }
-                  placeholder="Search..."
+                  placeholder="Question text or topic"
                   className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border py-2.5 pr-4 pl-12 focus:ring-2 focus:outline-none"
                 />
                 {filters.search && (
@@ -578,7 +643,10 @@ const PastQuestions = () => {
                       <div className="flex items-start gap-4">
                         <div
                           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold"
-                          style={{ backgroundColor: `${color}20`, color }}
+                          style={{
+                            backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
+                            color,
+                          }}
                         >
                           {questionNum}
                         </div>
@@ -586,7 +654,10 @@ const PastQuestions = () => {
                           <div className="mb-2 flex flex-wrap items-center gap-3">
                             <span
                               className="rounded-full px-2.5 py-1 text-xs font-semibold"
-                              style={{ backgroundColor: `${color}20`, color }}
+                              style={{
+                                backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
+                                color,
+                              }}
                             >
                               {q.subject}
                             </span>

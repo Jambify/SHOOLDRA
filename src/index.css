@@ -42,26 +42,30 @@ h6,
   --font-mono: "JetBrains Mono", monospace;
 
   /* Brand — Vibrant Blue */
-  --color-brand: #0066ff;
-  --color-brand-light: #4d94ff;
-  --color-brand-dim: rgba(0, 102, 255, 0.12);
+  --color-brand: var(--token-brand);
+  --color-brand-light: var(--token-brand-light);
+  --color-brand-dim: var(--token-brand-dim);
 
   /* Secondary Accent — Teal */
-  --color-teal: #00b8a9;
-  --color-teal-light: #4dd9cc;
-  --color-teal-dim: rgba(0, 184, 169, 0.12);
+  --color-teal: var(--token-teal);
+  --color-teal-light: var(--token-teal-light);
+  --color-teal-dim: var(--token-teal-dim);
 
   /* Highlight — Warm Yellow */
-  --color-lime: #ffc107;
-  --color-lime-dark: #ffb300;
+  --color-lime: var(--token-lime);
+  --color-lime-dark: var(--token-lime-dark);
 
-  /* Semantic — Unchanged (correctness, not branding) */
-  --color-success: #00c853;
-  --color-success-dim: rgba(0, 200, 83, 0.12);
-  --color-danger: #ff3b30;
-  --color-danger-dim: rgba(255, 59, 48, 0.12);
-  --color-warn: #ff9800;
-  --color-warn-dim: rgba(255, 152, 0, 0.12);
+  /* Warm celebration accent — reserved for streaks and study wins. */
+  --color-coral: var(--token-coral);
+  --color-coral-dim: var(--token-coral-dim);
+
+  /* Semantic colors keep their meaning across both themes. */
+  --color-success: var(--token-success);
+  --color-success-dim: var(--token-success-dim);
+  --color-danger: var(--token-danger);
+  --color-danger-dim: var(--token-danger-dim);
+  --color-warn: var(--token-warn);
+  --color-warn-dim: var(--token-warn-dim);
 
   /* Backgrounds */
   --color-bg: var(--bg);
@@ -102,23 +106,54 @@ h6,
    DARK THEME — default (Deep Navy)
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 :root {
-  --bg: #0a0e27;
-  --bgDeep: #0f1437;
-  --bgMain: #0a0e27;
-  --bgSurface: #141d3d;
-  --bgCard: #1a2449;
-  --bgTrack: rgba(255, 255, 255, 0.06);
-  --borderMuted: rgba(255, 255, 255, 0.08);
-  --textMain: #f0f2f5;
-  --textMuted: #9ca3af;
-  --textDim: #6b7280;
+  --token-brand: #0066ff;
+  --token-brand-light: #83b4ff;
+  --token-brand-dim: rgba(0, 102, 255, 0.16);
+  --token-teal: #33d1c0;
+  --token-teal-light: #85e7dc;
+  --token-teal-dim: rgba(51, 209, 192, 0.15);
+  --token-lime: #ffd166;
+  --token-lime-dark: #f0ad24;
+  --token-coral: #ff8a72;
+  --token-coral-dim: rgba(255, 138, 114, 0.15);
+  --token-success: #54d6a4;
+  --token-success-dim: rgba(84, 214, 164, 0.15);
+  --token-danger: #ff7b84;
+  --token-danger-dim: rgba(255, 123, 132, 0.15);
+  --token-warn: #ffc269;
+  --token-warn-dim: rgba(255, 194, 105, 0.15);
+
+  --subject-english: #83b4ff;
+  --subject-mathematics: #c3a2ff;
+  --subject-physics: #ffc269;
+  --subject-chemistry: #54d8c8;
+  --subject-biology: #65d99b;
+  --subject-economics: #f28bc3;
+  --subject-government: #ffa873;
+  --subject-literature: #d0a1ff;
+  --subject-history: #ff858d;
+  --subject-geography: #5cccf0;
+  --subject-crs: #f1d06c;
+  --subject-irs: #b9db70;
+  --subject-commerce: #68d6b6;
+
+  --bg: #0b1220;
+  --bgDeep: #0e192a;
+  --bgMain: #0b1220;
+  --bgSurface: #142238;
+  --bgCard: #192a42;
+  --bgTrack: rgba(222, 234, 250, 0.09);
+  --borderMuted: rgba(186, 205, 232, 0.13);
+  --textMain: #f3f7fc;
+  --textMuted: #afbdd0;
+  --textDim: #8999ae;
 
   --shadow-card-val: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-nav-val: 0 -2px 8px rgba(0, 0, 0, 0.2);
   --shadow-brand-val: 0 6px 16px rgba(0, 102, 255, 0.18);
-  --shadow-teal-val: 0 6px 16px rgba(0, 184, 169, 0.16);
-  --shadow-success-val: 0 4px 12px rgba(0, 200, 83, 0.18);
-  --shadow-danger-val: 0 4px 12px rgba(255, 59, 48, 0.18);
+  --shadow-teal-val: 0 6px 16px rgba(51, 209, 192, 0.16);
+  --shadow-success-val: 0 4px 12px rgba(84, 214, 164, 0.18);
+  --shadow-danger-val: 0 4px 12px rgba(255, 123, 132, 0.18);
 
   --scrollbar-thumb: rgba(255, 255, 255, 0.1);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
@@ -154,23 +189,54 @@ h6,
    LIGHT THEME — applied via <html data-theme="light">
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 [data-theme="light"] {
-  --bg: #f8fafc;
-  --bgDeep: #f1f5f9;
-  --bgMain: #f8fafc;
-  --bgSurface: #f1f5f9;
+  --token-brand: #075ee8;
+  --token-brand-light: #1557bd;
+  --token-brand-dim: rgba(7, 94, 232, 0.12);
+  --token-teal: #087e79;
+  --token-teal-light: #08746f;
+  --token-teal-dim: rgba(8, 126, 121, 0.11);
+  --token-lime: #926000;
+  --token-lime-dark: #754b00;
+  --token-coral: #b33f2f;
+  --token-coral-dim: rgba(179, 63, 47, 0.1);
+  --token-success: #087a53;
+  --token-success-dim: rgba(8, 122, 83, 0.11);
+  --token-danger: #b52b3a;
+  --token-danger-dim: rgba(181, 43, 58, 0.1);
+  --token-warn: #965600;
+  --token-warn-dim: rgba(150, 86, 0, 0.11);
+
+  --subject-english: #245dc7;
+  --subject-mathematics: #7048b8;
+  --subject-physics: #995800;
+  --subject-chemistry: #087c77;
+  --subject-biology: #147a4c;
+  --subject-economics: #a42575;
+  --subject-government: #a3470a;
+  --subject-literature: #703fa0;
+  --subject-history: #b3263b;
+  --subject-geography: #006b8f;
+  --subject-crs: #806200;
+  --subject-irs: #4d7114;
+  --subject-commerce: #087a61;
+
+  --bg: #f5f8fc;
+  --bgDeep: #edf2f8;
+  --bgMain: #f5f8fc;
+  --bgSurface: #edf2f8;
   --bgCard: #ffffff;
   --bgTrack: rgba(0, 102, 255, 0.08);
-  --borderMuted: rgba(0, 102, 255, 0.12);
-  --textMain: #0f172a;
-  --textMuted: #475569;
-  --textDim: #64748b;
+  --borderMuted: rgba(44, 67, 100, 0.14);
+  --textMain: #132238;
+  --textMuted: #43536a;
+  --textDim: #586a82;
 
   --shadow-card-val: 0 2px 8px rgba(0, 102, 255, 0.08);
   --shadow-nav-val: 0 -1px 4px rgba(0, 102, 255, 0.06);
   --shadow-brand-val: 0 6px 16px rgba(0, 102, 255, 0.14);
-  --shadow-teal-val: 0 6px 16px rgba(0, 184, 169, 0.12);
-  --shadow-success-val: 0 4px 12px rgba(0, 200, 83, 0.14);
-  --shadow-danger-val: 0 4px 12px rgba(255, 59, 48, 0.14);
+  --shadow-teal-val: 0 6px 16px rgba(8, 126, 121, 0.12);
+  --shadow-success-val: 0 4px 12px rgba(8, 122, 83, 0.14);
+  --shadow-danger-val: 0 4px 12px rgba(181, 43, 58, 0.14);
 
   --scrollbar-thumb: rgba(0, 102, 255, 0.2);
   --scrollbar-thumb-hover: rgba(0, 102, 255, 0.35);

@@ -139,8 +139,10 @@ const Dashboard: React.FC = () => {
     (a: TopicStat, b: TopicStat) => b.accuracy - a.accuracy,
   );
   const highestTopic = sortedTopics.length > 0 ? sortedTopics[0] : null;
-  const lowestTopic =
-    sortedTopics.length > 1 ? sortedTopics[sortedTopics.length - 1] : null;
+  // Recommend the weakest measured topic, including when the student has
+  // data for only one topic. The old two-topic check hid that useful case.
+  const priorityTopic =
+    [...weakTopics].sort((a, b) => a.accuracy - b.accuracy)[0] ?? null;
 
   const { daysLeft, formattedDate, isUpdating } = useExamCountdown();
 
@@ -149,6 +151,14 @@ const Dashboard: React.FC = () => {
   const cdMotivation = countdownMotivation(daysLeft);
 
   const isNewUser = questionsCompleted === 0 && bestScore === 0;
+
+  const priorityPracticeRoute = priorityTopic
+    ? `/quiz?${new URLSearchParams({
+        subject: priorityTopic.subject,
+        topic: priorityTopic.name,
+        mode: "quick",
+      }).toString()}`
+    : "/quiz";
 
   // Progress bar fill for questions
   const questionsPct =
@@ -225,9 +235,11 @@ const Dashboard: React.FC = () => {
             <p className="text-textMuted mb-6 max-w-md text-sm leading-relaxed">
               {isNewUser
                 ? "Welcome! Start your first quiz to track your progress and unlock your personalised dashboard."
-                : weakTopics.length > 0
-                  ? `Keep pushing — ${weakTopics.length} weak topics need attention today. Focus on ${lowestTopic?.name || "your weakest areas"} to improve.`
-                  : `Great job! You've mastered your weak topics. Your strongest area is ${highestTopic?.name || "none yet"}. Keep it up!`}
+                : priorityTopic
+                  ? `${priorityTopic.name} in ${priorityTopic.subject} is your clearest next move: ${priorityTopic.accuracy}% accuracy so far. Start a 10-question practice set and review each explanation as you go.`
+                  : highestTopic
+                    ? `Your tracked topics are looking strong. ${highestTopic.name} in ${highestTopic.subject} is currently your best at ${highestTopic.accuracy}%. Keep your edge with a quick practice set.`
+                    : "Your JAMB subjects are ready. Start a quick practice set and your topic insights will appear here as you answer questions."}
             </p>
 
             {/* CTAs */}
@@ -235,12 +247,16 @@ const Dashboard: React.FC = () => {
               {/* Primary pair — always visible, share width equally on mobile */}
               <div className="flex min-w-0 flex-1 gap-2 sm:gap-2.5">
                 <button
-                  onClick={() => navigate("/quiz")}
+                  onClick={() => navigate(priorityPracticeRoute)}
                   className="bg-brand hover:bg-brand-light rounded-brand shadow-brand/30 inline-flex flex-1 items-center justify-center gap-1.5 px-2.5 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-lg transition-all active:scale-95 sm:flex-none sm:gap-1.5 sm:px-4"
                 >
                   <BookOpen className="h-4 w-4 shrink-0" />
-                  <span className="sm:hidden">Daily Quiz</span>
-                  <span className="hidden sm:inline">Start Daily Quiz</span>
+                  <span className="sm:hidden">
+                    {priorityTopic ? "Fix Weak Topic" : "Quick Practice"}
+                  </span>
+                  <span className="hidden sm:inline">
+                    {priorityTopic ? "Practice Weak Topic" : "Start Quick Practice"}
+                  </span>
                 </button>
                 <button
                   onClick={() => navigate("/mock-exams")}
@@ -465,7 +481,7 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div className="bg-bgTrack h-1 overflow-hidden rounded-full">
                     <div
-                      className="bg-brand h-full rounded-full transition-all duration-500"
+                      className="bg-teal h-full rounded-full transition-all duration-500"
                       style={{ width: `${questionsPct}%` }}
                     />
                   </div>
@@ -488,13 +504,13 @@ const Dashboard: React.FC = () => {
             <div
               className={cn(
                 "flex h-7 w-7 items-center justify-center rounded-lg sm:h-8 sm:w-8",
-                streak > 0 ? "bg-brand/10" : "bg-bgCard",
+                streak > 0 ? "bg-coral/10" : "bg-bgCard",
               )}
             >
               <Flame
                 className={cn(
                   "h-3.5 w-3.5 sm:h-4 sm:w-4",
-                  streak > 0 ? "text-brand" : "text-textDim",
+                  streak > 0 ? "text-coral" : "text-textDim",
                 )}
               />
             </div>
@@ -512,7 +528,7 @@ const Dashboard: React.FC = () => {
                   days
                 </span>
               </p>
-              <p className="text-brand flex items-center gap-1 text-[10px] font-medium sm:text-[11px]">
+              <p className="text-coral flex items-center gap-1 text-[10px] font-medium sm:text-[11px]">
                 Keep it up!
               </p>
             </>

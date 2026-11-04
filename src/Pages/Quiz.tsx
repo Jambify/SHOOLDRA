@@ -29,6 +29,7 @@ import {
   Infinity as InfinityIcon,
   AlertCircle,
   RefreshCw,
+  Clock,
 } from "lucide-react";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import { useOfflineStore } from "../Store/useOfflineStore";
@@ -486,11 +487,20 @@ const Quiz: React.FC = () => {
             <span>Exit Quiz</span>
           </button>
 
-          <div className="flex flex-1 items-center justify-center gap-1">
+          <div
+            className="flex flex-1 items-center justify-center gap-1"
+            role="progressbar"
+            aria-label="Quiz progress"
+            aria-valuemin={1}
+            aria-valuemax={questions.length}
+            aria-valuenow={currentIndex + 1}
+            aria-valuetext={`Question ${currentIndex + 1} of ${questions.length}`}
+          >
             {questions.length <= 30 ? (
               questions.map((_, i) => (
                 <div
                   key={i}
+                  aria-hidden="true"
                   className="rounded-full transition-all duration-300"
                   style={{
                     width: i === currentIndex ? "20px" : "6px",
@@ -669,7 +679,7 @@ const Quiz: React.FC = () => {
                     : "bg-bgCard text-textMain border-borderMuted hover:border-brand/30 dark:hover:border-brand/40 hover:shadow-sm"
                 }`}
               >
-                <span>{s.icon}</span>
+                <span style={{ color: s.color }}>{s.icon}</span>
                 <span>{s.name}</span>
               </button>
             ))}
@@ -686,13 +696,8 @@ const Quiz: React.FC = () => {
                     : "bg-bgCard border-borderMuted hover:border-brand/30 dark:hover:border-brand/40 dark:hover:bg-bgSurface hover:shadow-sm"
                 }`}
               >
-                {selectedSubject === s.name && (
-                  <div
-                    className={`absolute inset-0 bg-linear-to-br opacity-20 ${s.color}`}
-                  />
-                )}
-
                 <span
+                  style={{ color: s.color }}
                   className={`mb-2 text-3xl transition-transform duration-300 group-hover:scale-110 ${selectedSubject === s.name ? "scale-110" : ""}`}
                 >
                   {s.icon}
@@ -831,6 +836,10 @@ const Quiz: React.FC = () => {
           </div>
         )}
 
+        <p className="text-textDim mb-3 flex items-center gap-2 text-[11px] font-black tracking-widest uppercase">
+          <Clock size={14} className="text-brand" />
+          4. Choose Session Length
+        </p>
         <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
             {
@@ -852,12 +861,14 @@ const Quiz: React.FC = () => {
               desc: "15 mins · Unlimited Qs",
             },
           ].map((mode) => (
-            <div
+            <button
               key={mode.id}
+              type="button"
               onClick={() =>
                 setSelectedMode(mode.id as "quick" | "standard" | "marathon")
               }
-              className={`rounded-brand-lg cursor-pointer border p-4 transition-all ${
+              aria-pressed={selectedMode === mode.id}
+              className={`rounded-brand-lg w-full cursor-pointer border p-4 text-left transition-all focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none ${
                 selectedMode === mode.id
                   ? "bg-brand/10 border-brand shadow-brand/10 ring-brand/20 ring-1"
                   : "bg-bgSurface border-borderMuted hover:border-brand/20 dark:hover:border-white/15"
@@ -871,8 +882,31 @@ const Quiz: React.FC = () => {
                 {mode.label}
               </p>
               <p className="text-textDim mt-0.5 text-[11px]">{mode.desc}</p>
-            </div>
+            </button>
           ))}
+        </div>
+
+        <div
+          className="bg-bgSurface border-borderMuted mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3"
+          aria-live="polite"
+        >
+          <div className="min-w-0">
+            <p className="text-textDim text-[10px] font-bold tracking-widest uppercase">
+              Your practice set
+            </p>
+            <p className="text-textMain mt-0.5 truncate text-sm font-semibold">
+              {selectedSubject === "All" ? "All subjects" : selectedSubject}
+              {selectedTopic !== "All" ? ` · ${selectedTopic}` : " · Mixed topics"}
+              {selectedMode !== "marathon" ? ` · ${selectedDifficulty} difficulty` : ""}
+            </p>
+          </div>
+          <span className="text-brand-light shrink-0 text-xs font-semibold">
+            {selectedMode === "quick"
+              ? "10 questions · about 10 min"
+              : selectedMode === "standard"
+                ? "20 questions · about 30 min"
+                : "15-minute session"}
+          </span>
         </div>
 
         <Button
@@ -887,7 +921,13 @@ const Quiz: React.FC = () => {
             <Loader2 className="mx-auto h-6 w-6 animate-spin" />
           ) : (
             <>
-              <span className="relative z-10">Start Practice Quiz</span>
+              <span className="relative z-10">
+                {selectedMode === "quick"
+                  ? "Start Quick Fire"
+                  : selectedMode === "standard"
+                    ? "Start Standard Quiz"
+                    : "Start Marathon Quiz"}
+              </span>
               <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-300 group-hover:translate-y-0"></div>
             </>
           )}

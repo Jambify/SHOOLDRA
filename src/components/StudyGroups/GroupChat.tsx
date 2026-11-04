@@ -364,7 +364,10 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
 
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg shadow-inner md:h-10 md:w-10 md:text-xl"
-            style={{ background: `${color}15`, border: `1px solid ${color}30` }}
+            style={{
+              background: `color-mix(in srgb, ${color} 12%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${color} 28%, transparent)`,
+            }}
           >
             {groupIcon}
           </div>

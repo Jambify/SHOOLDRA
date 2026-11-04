@@ -238,48 +238,68 @@ const SubjectProgress: React.FC = () => {
             const progressColor =
               item.accuracy < 30 ? "var(--color-danger)" : "var(--color-warn)";
 
+            const accuracy = Math.max(0, Math.min(100, item.accuracy));
+
             return (
-              <div
-                key={`${item.subject}-${item.name}-${index}`}
-                className="group hover:shadow-brand/10 cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
-                onClick={() =>
-                  navigate(
-                    `/quiz?subject=${encodeURIComponent(item.subject)}&topic=${encodeURIComponent(item.name)}`,
-                  )
-                }
-              >
-                <div className="group-hover:border-brand/40 bg-bgCard/90 border-borderMuted flex items-center gap-3 rounded-[1.5rem] border p-4 shadow-sm transition-all">
-                  <div
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl text-xl"
-                    style={{
-                      background: `color-mix(in srgb, ${subjectData?.color || "var(--color-brand)"} 24%, transparent)`,
-                    }}
-                  >
-                    {getSubjectIcon(item.subject)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-textMain group-hover:text-brand truncate text-sm font-bold transition-colors">
-                      {item.name}
-                    </p>
-                    <p className="text-textDim text-[11px] font-medium">
-                      {item.subject}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="bg-bgSurface text-textMain rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.18em] uppercase">
-                      {item.accuracy}%
-                    </div>
-                    <div className="bg-bgTrack h-2.5 w-24 overflow-hidden rounded-full">
+              <div key={`${item.subject}-${item.name}-${index}`}>
+                <button
+                  type="button"
+                  className="group w-full text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-brand/10 focus-visible:ring-brand rounded-[1.5rem] focus-visible:ring-2 focus-visible:outline-none"
+                  onClick={() =>
+                    navigate(`/quiz?${new URLSearchParams({
+                      subject: item.subject,
+                      topic: item.name,
+                      mode: "quick",
+                    }).toString()}`)
+                  }
+                  aria-label={`Practice ${item.name} in ${item.subject}, ${Math.round(accuracy)} percent accuracy`}
+                >
+                  <div className="group-hover:border-brand/40 bg-bgCard/90 border-borderMuted grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 rounded-[1.5rem] border p-4 shadow-sm transition-all">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div
-                        className="h-full rounded-full"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl"
+                        style={{
+                          background: `color-mix(in srgb, ${subjectData?.color || "var(--color-brand)"} 24%, transparent)`,
+                          color: subjectData?.color || "var(--color-brand)",
+                        }}
+                      >
+                        {getSubjectIcon(item.subject)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-textMain group-hover:text-brand truncate text-sm font-bold transition-colors">
+                          {item.subject}
+                        </p>
+                        <p className="text-textDim mt-0.5 truncate text-xs">
+                          Weak topic: {item.name}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex min-w-14 flex-col items-end">
+                      <span className="font-display text-textMain text-lg leading-none font-bold tabular-nums">
+                        {Math.round(accuracy)}%
+                      </span>
+                      <span className="text-textDim mt-1 text-[9px] font-semibold tracking-wide uppercase">
+                        accuracy
+                      </span>
+                    </div>
+                    <div
+                      className="bg-bgTrack col-span-2 h-1.5 overflow-hidden rounded-full"
+                      role="progressbar"
+                      aria-label={`${item.subject} topic accuracy`}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(accuracy)}
+                    >
+                      <div
+                        className="h-full rounded-full transition-[width] duration-500"
                         style={{
                           background: progressColor,
-                          width: `${item.accuracy}%`,
+                          width: `${accuracy}%`,
                         }}
                       />
                     </div>
                   </div>
-                </div>
+                </button>
               </div>
             );
           })}

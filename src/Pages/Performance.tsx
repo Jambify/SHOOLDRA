@@ -693,28 +693,35 @@ const Performance: React.FC = () => {
                       </div>
                     </div>
                     {weakestTopic && (
-                      <div
-                        className="bg-danger/5 border-danger/20 hover:border-danger/40 cursor-pointer rounded-xl border p-3 transition-colors"
+                      <button
+                        type="button"
+                        className="bg-danger/5 border-danger/20 hover:border-danger/40 focus-visible:ring-brand w-full cursor-pointer rounded-xl border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(
-                            `/quiz?subject=${encodeURIComponent(subject)}&topic=${encodeURIComponent(weakestTopic.name)}`,
-                          );
+                          navigate(`/quiz?${new URLSearchParams({
+                            subject,
+                            topic: weakestTopic.name,
+                            mode: "quick",
+                          }).toString()}`);
                         }}
+                        aria-label={`Practice ${weakestTopic.name} in ${subject}, currently ${Math.round(weakestTopic.accuracy)} percent accuracy`}
                       >
                         <p className="text-danger mb-1 flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase">
                           <span className="bg-danger h-1.5 w-1.5 rounded-full" />
                           Weakest Topic
                         </p>
-                        <div className="flex items-center justify-between">
-                          <p className="text-textMain group-hover:text-danger truncate text-sm font-medium transition-colors">
+                        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2">
+                          <p className="text-textMain group-hover:text-danger min-w-0 text-sm leading-snug font-medium transition-colors [overflow-wrap:anywhere]">
                             {weakestTopic.name}
                           </p>
-                          <span className="text-danger text-xs font-bold">
+                          <span className="bg-danger/10 text-danger mt-0.5 shrink-0 rounded-full px-2 py-1 font-mono text-xs font-bold tabular-nums">
                             {Math.round(weakestTopic.accuracy)}%
                           </span>
+                          <span className="text-brand-light col-span-2 justify-self-end text-[11px] font-semibold">
+                            Practice this topic →
+                          </span>
                         </div>
-                      </div>
+                      </button>
                     )}
                     {!weakestTopic && subjectTopicStats.length > 0 && (
                       <div className="bg-success/5 border-success/20 rounded-xl border p-3">
